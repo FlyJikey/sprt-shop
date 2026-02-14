@@ -1,158 +1,138 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { 
   LayoutDashboard, 
   ShoppingBag, 
+  Users, 
+  Brain, 
+  Tag, 
+  LogOut, 
   Package, 
-  Layers, 
-  Palette,
-  Users,
-  LogOut,
-  Loader2,
-  Upload,
-  Brain // <--- 1. Импортировали иконку мозга
+  UploadCloud, 
+  Palette
 } from "lucide-react";
 
-type UserProfile = {
-  role: string;
-};
-
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null); // <--- ИСПРАВЛЕНИЕ: any убирает ошибку сборки
   const router = useRouter();
-  const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname === '/admin/login') {
-      setLoading(false);
-      return;
-    }
-
-    const checkAccess = async () => {
+    const checkUser = async () => {
       try {
-        setLoading(true);
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError || !session) {
+        if (!session) {
           router.push('/admin/login');
           return;
         }
 
-        const { data: profile, error: profileError } = await supabase
+        const { data: userProfile, error } = await supabase
           .from('profiles')
-          .select('role')
+          .select('*')
           .eq('id', session.user.id)
           .single();
 
-        if (profileError || !profile) {
-          console.error("Ошибка доступа:", profileError);
-          router.push('/'); 
+        if (error || !userProfile) {
+          console.error("Ошибка загрузки профиля:", error);
+          router.push('/');
           return;
         }
 
-        if (profile.role !== 'admin' && profile.role !== 'employee') {
-          router.push('/'); 
+        // Проверка роли
+        if (userProfile.role !== 'admin' && userProfile.role !== 'employee') {
+          router.push('/');
           return;
         }
 
-        setRole(profile.role);
-      } catch (error) {
-        console.error('System error:', error);
-      } finally {
-        setLoading(false);
+        setProfile(userProfile);
+        setIsLoading(false);
+      } catch (e) {
+        console.error("Auth error:", e);
+        router.push('/');
       }
     };
 
-    checkAccess();
-  }, [router, pathname]);
+    checkUser();
+  }, [router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.replace('/admin/login');
+    router.push('/admin/login');
   };
 
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
-  }
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 flex-col gap-4">
-        <Loader2 className="animate-spin text-gray-400" size={40} />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-400">
+        <div className="animate-pulse">Загрузка панели управления...</div>
       </div>
     );
   }
 
-  // --- МЕНЮ ---
-  const allMenuItems = [
-    { name: "Обзор", href: "/admin", icon: LayoutDashboard },
-    { name: "Заказы", href: "/admin/orders", icon: ShoppingBag },
-    { name: "Товары", href: "/admin/products", icon: Package },
-    { name: "Категории", href: "/admin/categories", icon: Layers },
-    { name: "Импорт (CSV)", href: "/admin/import", icon: Upload },
+  const menuItems = [
+    { name: "Главная", href: "/admin", icon: LayoutDashboard },
+    { name: "Товары", href: "/admin/products", icon: ShoppingBag },
+    { name: "Категории", href: "/admin/categories", icon: Tag },
+    { name: "Заказы", href: "/admin/orders", icon: Package },
+    { name: "Пользователи", href: "/admin/users", icon: Users },
+    { name: "AI Менеджер", href: "/admin/ai", icon: Brain },
+    { name: "Импорт", href: "/admin/import", icon: UploadCloud },
     { name: "Дизайн", href: "/admin/design", icon: Palette },
-    { name: "Сотрудники", href: "/admin/users", icon: Users },
-    { name: "AI Ассистент", href: "/admin/ai", icon: Brain }, // <--- 2. Добавили новый раздел
   ];
-
-  const employeeMenuItems = [
-    { name: "Заказы", href: "/admin/orders", icon: ShoppingBag },
-  ];
-
-  const menuItems = role === 'admin' ? allMenuItems : employeeMenuItems;
 
   return (
-    <div className="flex min-h-screen bg-gray-100 font-sans text-black">
-      <aside className="w-64 bg-black text-white flex flex-col fixed h-full z-10 left-0 top-0">
-        <div className="h-16 flex items-center px-6 border-b border-gray-800">
-           <span className="font-bold text-xl">Admin<span className="text-[#C5A070]">Panel</span></span>
-        </div>
-        
-        <div className="px-6 py-4 border-b border-gray-800">
-            <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Роль</div>
-            <div className="font-medium text-white capitalize">
-              {role === 'admin' ? 'Администратор' : 'Сотрудник'}
-            </div>
+    <div className="min-h-screen flex bg-gray-50">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-10">
+        <div className="p-6 border-b border-gray-100">
+          <Link href="/" className="text-2xl font-black tracking-tighter block">
+            SPAR<span className="text-[#C5A070]">TAK</span>
+          </Link>
+          <div className="text-xs text-gray-400 mt-1 uppercase tracking-wide">Панель управления</div>
         </div>
 
-        <nav className="flex-1 py-6 px-3 space-y-1">
-           {menuItems.map((item) => {
-             const Icon = item.icon;
-             return (
-               <Link 
-                 key={item.href} 
-                 href={item.href} 
-                 className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors 
-                   ${pathname === item.href ? 'bg-[#C5A070] text-white' : 'text-gray-400 hover:bg-gray-900 hover:text-white'}
-                 `}
-               >
-                 <Icon size={18} />
-                 {item.name}
-               </Link>
-             );
-           })}
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isActive 
+                    ? "bg-black text-white shadow-md" 
+                    : "text-gray-600 hover:bg-gray-100 hover:text-black"
+                }`}
+              >
+                <item.icon size={18} />
+                {item.name}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t border-gray-800">
-           <button 
-             onClick={handleLogout} 
-             className="flex items-center gap-3 text-red-400 hover:text-red-300 text-sm font-medium w-full px-3 py-2 transition-colors"
-           >
-             <LogOut size={18} /> Выйти
-           </button>
+        <div className="p-4 border-t border-gray-100">
+          <div className="px-4 py-3 mb-2 rounded-lg bg-gray-50 border border-gray-100">
+            <div className="text-xs text-gray-500 font-bold uppercase mb-1">Вы вошли как</div>
+            <div className="text-sm font-bold truncate">{profile?.email || 'Администратор'}</div>
+            <div className="text-xs text-[#C5A070] capitalize">{profile?.role}</div>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-2 w-full text-red-600 hover:bg-red-50 rounded-lg text-sm font-bold transition-colors"
+          >
+            <LogOut size={18} /> Выйти
+          </button>
         </div>
       </aside>
-      
-      <main className="flex-1 ml-64 p-8">
+
+      {/* Main Content */}
+      <main className="flex-1 md:ml-64 p-8">
         {children}
       </main>
     </div>
