@@ -18,7 +18,7 @@ export default function AIPage() {
     setLogs((prev) => [`[${time}] ${message}`, ...prev.slice(0, 100)]);
   };
 
-  // === 1. КАТЕГОРИЗАЦИЯ (Твой Groq код) ===
+  // === 1. КАТЕГОРИЗАЦИЯ ===
   const startCategorization = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
@@ -28,7 +28,6 @@ export default function AIPage() {
     addLog(`🚀 Запуск категоризации (Пакет: ${batchLimit} шт)...`);
 
     try {
-      // Ищем товары, где категория пуста или "Каталог"
       const { data: products, error } = await supabase
         .from('products')
         .select('id, name, description')
@@ -44,8 +43,8 @@ export default function AIPage() {
       for (let i = 0; i < products.length; i++) {
         if (stopSignal.current) { addLog("🛑 Стоп по требованию."); break; }
         
-        // --- ИСПРАВЛЕНИЕ: Добавлено 'as any', чтобы TypeScript не ругался ---
-        const p = products[i] as any; 
+        // ВАЖНО: as any решает ошибку сборки
+        const p = products[i] as any;
         
         addLog(`📦 [${i+1}/${products.length}] Анализ: "${p.name.slice(0, 20)}..."`);
 
@@ -70,7 +69,7 @@ export default function AIPage() {
     }
   };
 
-  // === 2. ВЕКТОРЫ (Улучшенная логика: Название + Категория + Описание) ===
+  // === 2. ВЕКТОРЫ ===
   const startRecommendations = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
@@ -80,7 +79,6 @@ export default function AIPage() {
     addLog(`🔮 Генерация векторов (Пакет: ${batchLimit} шт)...`);
 
     try {
-      // Берем товары БЕЗ векторов
       const { data: products, error } = await supabase
         .from('products')
         .select('id, name, category, description')
@@ -96,10 +94,9 @@ export default function AIPage() {
       for (let i = 0; i < products.length; i++) {
         if (stopSignal.current) { addLog("🛑 Стоп."); break; }
         
-        // --- ИСПРАВЛЕНИЕ: Добавлено 'as any' ---
+        // ВАЖНО: as any решает ошибку сборки
         const p = products[i] as any;
         
-        // МАКСИМАЛЬНЫЙ КОНТЕКСТ: Собираем всё, что знаем о товаре
         const fullText = `Товар: ${p.name}. Категория: ${p.category || 'Разное'}. Описание: ${p.description || ''}`;
         
         addLog(`🧬 [${i+1}/${products.length}] Вектор для: "${p.name.slice(0, 20)}..."`);
@@ -146,7 +143,6 @@ export default function AIPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Категории */}
         <div className="p-6 border rounded-xl bg-white shadow-sm hover:border-[#C5A070] transition-colors">
           <Tags className="mb-2 text-[#C5A070]" size={32}/>
           <h3 className="text-lg font-bold">Категоризация</h3>
@@ -160,7 +156,6 @@ export default function AIPage() {
           </button>
         </div>
 
-        {/* Векторы */}
         <div className="p-6 border rounded-xl bg-white shadow-sm hover:border-[#C5A070] transition-colors">
           <Sparkles className="mb-2 text-blue-500" size={32}/>
           <h3 className="text-lg font-bold">Рекомендации</h3>
@@ -184,7 +179,6 @@ export default function AIPage() {
         </button>
       )}
 
-      {/* Логи */}
       <div className="bg-[#1e1e1e] p-4 rounded-xl h-80 overflow-y-auto font-mono text-xs text-gray-300 border border-gray-800">
         <div className="flex justify-between border-b border-gray-700 pb-2 mb-2">
           <span className="font-bold text-gray-500 flex gap-2 items-center"><Terminal size={14}/> SYSTEM_LOGS</span>
