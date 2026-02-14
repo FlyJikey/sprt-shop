@@ -18,7 +18,8 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null); // <--- ИСПРАВЛЕНИЕ: any убирает ошибку сборки
+  // ИСПРАВЛЕНИЕ: <any> говорит TypeScript'у "верь мне, тут будут данные"
+  const [profile, setProfile] = useState<any>(null); 
   const router = useRouter();
   const pathname = usePathname();
 
@@ -51,10 +52,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         setProfile(userProfile);
-        setIsLoading(false);
       } catch (e) {
         console.error("Auth error:", e);
         router.push('/');
+      } finally {
+        setIsLoading(false);
       }
     };
 
