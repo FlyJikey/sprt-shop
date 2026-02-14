@@ -43,7 +43,10 @@ export default function AIPage() {
 
       for (let i = 0; i < products.length; i++) {
         if (stopSignal.current) { addLog("🛑 Стоп по требованию."); break; }
-        const p = products[i];
+        
+        // --- ИСПРАВЛЕНИЕ: Добавлено 'as any', чтобы TypeScript не ругался ---
+        const p = products[i] as any; 
+        
         addLog(`📦 [${i+1}/${products.length}] Анализ: "${p.name.slice(0, 20)}..."`);
 
         const res = await fetch('/api/ai/categorize', {
@@ -92,7 +95,9 @@ export default function AIPage() {
 
       for (let i = 0; i < products.length; i++) {
         if (stopSignal.current) { addLog("🛑 Стоп."); break; }
-        const p = products[i];
+        
+        // --- ИСПРАВЛЕНИЕ: Добавлено 'as any' ---
+        const p = products[i] as any;
         
         // МАКСИМАЛЬНЫЙ КОНТЕКСТ: Собираем всё, что знаем о товаре
         const fullText = `Товар: ${p.name}. Категория: ${p.category || 'Разное'}. Описание: ${p.description || ''}`;
