@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Header from '@/components/Header';
 import AddToCart from '@/components/AddToCart';
-// Импортируем наш новый компонент
 import RelatedProducts from '@/components/RelatedProducts'; 
 import { ArrowLeft, Check, AlertCircle, Package } from 'lucide-react';
 
@@ -35,7 +34,6 @@ export default async function ProductPage({ params }: Props) {
   const decodedSlug = decodeURIComponent(slug);
 
   try {
-    // 1. Загружаем товар
     const { data: product, error } = await supabaseAdmin
       .from('products')
       .select('*')
@@ -44,13 +42,12 @@ export default async function ProductPage({ params }: Props) {
 
     if (error || !product) return notFound();
 
-    // 2. Ищем похожие (Запрашиваем 16 штук с запасом)
     let relatedProducts: any[] = [];
     if (product.embedding) {
       const { data: related } = await supabaseAdmin.rpc('match_products', {
         query_embedding: product.embedding,
-        match_threshold: 0.4,   // Порог
-        match_count: 16,        // <-- ЗАПРАШИВАЕМ 16 ТОВАРОВ
+        match_threshold: 0.4,
+        match_count: 16,
         current_product_id: product.id
       });
       relatedProducts = related || [];
@@ -95,7 +92,7 @@ export default async function ProductPage({ params }: Props) {
               {/* Инфо */}
               <div className="flex flex-col">
                 <div className="mb-4">
-                  <span className="text-xs font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1.5 rounded-lg">
+                  <span className="text-xs font-bold text-red-600 uppercase tracking-widest bg-red-50 px-3 py-1.5 rounded-lg">
                       {product.category || 'Без категории'}
                   </span>
                 </div>
@@ -120,6 +117,7 @@ export default async function ProductPage({ params }: Props) {
                 <div className="flex items-baseline gap-2 mb-8">
                   <span className="text-4xl font-black text-gray-900">{product.price}</span>
                   <span className="text-2xl font-bold text-gray-400">₽</span>
+                  <span className="text-xl font-bold text-gray-400">/ {product.unit || 'шт'}</span>
                 </div>
 
                 <div className="w-full max-w-sm mb-10">
@@ -136,8 +134,6 @@ export default async function ProductPage({ params }: Props) {
             </div>
           </div>
 
-          {/* --- ВОТ ЗДЕСЬ ИЗМЕНЕНИЕ --- */}
-          {/* Вместо ручного вывода мы используем новый компонент */}
           <RelatedProducts products={relatedProducts} />
           
         </div>

@@ -21,7 +21,7 @@ interface CatalogGridProps {
   totalCount: number;
   sort: string;
   query: string;
-  category: string; // <-- 1. ДОБАВИЛИ В СПИСОК ПАРАМЕТРОВ
+  category: string;
 }
 
 export default function CatalogGrid({ initialProducts, totalCount, sort, query, category }: CatalogGridProps) {
@@ -41,18 +41,14 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
 
     let dbQuery = supabase.from('products').select('*');
 
-    // Учитываем поиск
     if (query) {
       dbQuery = dbQuery.ilike('name', `%${query}%`);
     }
 
-    // 2. ИСПРАВЛЕНИЕ: Учитываем категорию при подгрузке!
-    // Теперь кнопка знает, что мы в "Пультах", и грузит только их
     if (category) {
        dbQuery = dbQuery.ilike('category', `${category}%`);
     }
 
-    // Сортировка
     switch (sort) {
       case 'price_asc': 
         dbQuery = dbQuery.order('price', { ascending: true }).order('id', { ascending: true }); 
@@ -88,35 +84,40 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-4 flex flex-col border border-gray-100 h-full group"
+            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 flex flex-col border border-gray-100 h-full group"
           >
-            <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-gray-50 rounded-lg overflow-hidden">
+            {/* Фото товара */}
+            <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
               {product.image_url && product.image_url !== '/window.svg' ? (
                   <img 
                     src={product.image_url} 
                     alt={product.name} 
-                    className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" 
+                    className="w-full h-full object-contain p-2 mix-blend-multiply group-hover:scale-110 transition-transform duration-500" 
                   />
               ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                    Нет фото
+                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs italic">
+                    Фото ожидается
                   </div>
               )}
             </Link>
 
-            <Link href={`/product/${product.slug}`} className="block flex-grow">
-              <div className="text-xs text-blue-600 mb-1 font-medium tracking-wide uppercase line-clamp-1">
+            {/* Описание */}
+            <Link href={`/product/${product.slug}`} className="block flex-grow mb-4">
+              <div className="text-[10px] text-red-600 mb-1.5 font-bold tracking-widest uppercase line-clamp-1 opacity-80">
                 {product.category || 'Товар'}
               </div>
-              <h3 className="font-medium text-gray-900 line-clamp-2 hover:text-blue-600 transition-colors mb-2 text-sm leading-snug" title={product.name}>
+              <h3 className="font-semibold text-gray-800 line-clamp-2 group-hover:text-red-700 transition-colors text-sm leading-relaxed" title={product.name}>
                 {product.name}
               </h3>
             </Link>
 
-            <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
-              <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-bold text-gray-900">{product.price}</span>
-                  <span className="text-sm font-medium text-gray-500">₽</span>
+            {/* Блок цены и покупки */}
+            <div className="mt-auto pt-4 border-t border-gray-50 space-y-3">
+              <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-black text-gray-900 tracking-tight">
+                    {Math.round(product.price).toLocaleString()}
+                  </span>
+                  <span className="text-sm font-bold text-gray-400 uppercase">₽</span>
               </div>
               <AddToCart product={product} />
             </div>
@@ -125,14 +126,14 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
       </div>
 
       {hasMore && (
-        <div className="mt-12 flex justify-center">
+        <div className="mt-16 flex justify-center">
           <button
             onClick={loadMore}
             disabled={loading}
-            className="px-10 py-3 bg-white border border-gray-200 rounded-full font-medium text-gray-900 hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            className="px-12 py-4 bg-white border-2 border-gray-100 rounded-2xl font-bold text-gray-900 hover:border-red-600 hover:text-red-600 hover:shadow-lg transition-all flex items-center gap-3 active:scale-95"
           >
-            {loading && <Loader2 className="animate-spin w-4 h-4 text-gray-500" />}
-            {loading ? 'Загрузка...' : 'Показать еще'}
+            {loading && <Loader2 className="animate-spin w-5 h-5 text-red-600" />}
+            {loading ? 'Загружаем...' : 'Показать еще товары'}
           </button>
         </div>
       )}

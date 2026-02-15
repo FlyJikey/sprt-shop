@@ -60,12 +60,17 @@ export default function Header() {
   return (
     <header className="bg-white sticky top-0 z-40 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        {/* Убрали justify-between, чтобы элементы шли подряд слева направо */}
+        <div className="flex items-center h-20">
           
-          {/* Логотип */}
-          <div className="flex-shrink-0 flex items-center gap-6">
-            <Link href="/" className="text-2xl font-black text-blue-600 tracking-tighter hover:opacity-80 transition">
-               SPARTAK
+          {/* Логотип и Каталог */}
+          <div className="flex-shrink-0 flex items-center gap-12 lg:gap-16">
+            <Link 
+              href="/" 
+              className="text-3xl font-serif font-black text-spartak tracking-widest uppercase hover:opacity-80 transition"
+              style={{ color: '#9C2730' }}
+            >
+               СПАРТАК
             </Link>
             
             {/* Десктопное меню категорий */}
@@ -75,12 +80,13 @@ export default function Header() {
           </div>
 
           {/* Поиск (Desktop) */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-8">
+          {/* ml-8: отступ от каталога. ml-auto (на иконках ниже) отодвинет всё остальное вправо */}
+          <div className="hidden md:flex flex-1 max-w-xl ml-8 lg:ml-12">
             <form onSubmit={handleSearch} className="w-full relative">
                 <input
                   type="text"
                   placeholder="Поиск товаров..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-transparent hover:bg-white hover:border-gray-200 focus:bg-white border focus:border-blue-500 rounded-xl outline-none transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-transparent hover:bg-white hover:border-gray-200 focus:bg-white border focus:border-blue-600 rounded-xl outline-none transition-all"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
                 />
@@ -89,7 +95,8 @@ export default function Header() {
           </div>
 
           {/* Иконки: Профиль и Корзина */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          {/* ml-auto прижимает этот блок к правому краю */}
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
             
             {/* --- ИКОНКА ПРОФИЛЯ --- */}
             {user ? (
@@ -101,8 +108,6 @@ export default function Header() {
                 >
                     <User className="h-6 w-6" />
                 </Link>
-                {/* Кнопка выхода (опционально, если нужно прямо в шапке) */}
-                 {/* <button onClick={handleLogout} className="text-xs text-red-500 hover:underline">Выйти</button> */}
               </div>
             ) : (
               <Link 
@@ -142,7 +147,7 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Поиск..."
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-600"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
               />
