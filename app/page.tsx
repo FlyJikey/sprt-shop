@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import DynamicIcon from '@/components/DynamicIcon';
 import HeroSlider from '@/components/HeroSlider';
+import FavoriteButton from '@/components/FavoriteButton';
 
 const PRODUCTS_PER_PAGE = 8;
 
@@ -131,10 +132,16 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((p) => (
-              <div key={p.id} className="group flex flex-col bg-white border border-gray-100 hover:border-gray-200 hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
+              <div key={p.id} className="group flex flex-col bg-white border border-gray-100 hover:border-gray-200 hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden relative">
                 
                 {/* Фото область (клик ведет на товар) */}
                 <div className="aspect-square bg-gray-50 relative flex items-center justify-center p-6">
+                  
+                  {/* КНОПКА ИЗБРАННОГО */}
+                  <div className="absolute top-3 right-3 z-20">
+                     <FavoriteButton productId={p.id} className="p-2 shadow-sm" />
+                  </div>
+
                   <Link href={`/product/${p.slug}`} className="absolute inset-0 z-0">
                     {p.image_url ? (
                       <Image 
@@ -153,7 +160,7 @@ export default function HomePage() {
                   {/* Кнопка корзины (поверх ссылки, z-10) */}
                   <button 
                     onClick={(e) => {
-                      e.preventDefault(); // На всякий случай
+                      e.preventDefault(); 
                       addItem(p);
                     }}
                     className="absolute bottom-4 right-4 z-10 bg-black text-white w-10 h-10 flex items-center justify-center rounded-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-blue-600 shadow-xl"
@@ -162,7 +169,7 @@ export default function HomePage() {
                   </button>
                 </div>
 
-                {/* Инфо область (клик ведет на товар) */}
+                {/* Инфо область */}
                 <Link href={`/product/${p.slug}`} className="p-5 flex flex-col flex-grow group/info">
                   <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 group-hover/info:text-blue-500 transition-colors">
                     {p.category}

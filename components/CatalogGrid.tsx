@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase-client';
 import Link from 'next/link';
 import AddToCart from '@/components/AddToCart';
 import { Loader2 } from 'lucide-react';
+import FavoriteButton from '@/components/FavoriteButton';
 
 interface Product {
   id: number;
@@ -84,7 +85,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
         {products.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 flex flex-col border border-gray-100 h-full group"
+            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 flex flex-col border border-gray-100 h-full group relative"
           >
             {/* Фото товара */}
             <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
@@ -99,6 +100,11 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
                     Фото ожидается
                   </div>
               )}
+              
+              {/* НОВАЯ КНОПКА ИЗБРАННОГО ЧЕРЕЗ КОМПОНЕНТ */}
+              <div className="absolute top-2 right-2 z-10">
+                <FavoriteButton productId={product.id} className="p-2 shadow-sm" />
+              </div>
             </Link>
 
             {/* Описание */}
@@ -115,7 +121,8 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
             <div className="mt-auto pt-4 border-t border-gray-50 space-y-3">
               <div className="flex items-baseline gap-1.5">
                   <span className="text-2xl font-black text-gray-900 tracking-tight">
-                    {Math.round(product.price).toLocaleString()}
+                    {/* Исправление: принудительная русская локаль */}
+                    {Math.round(product.price).toLocaleString('ru-RU')}
                   </span>
                   <span className="text-sm font-bold text-gray-400 uppercase">₽</span>
               </div>

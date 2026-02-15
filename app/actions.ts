@@ -6,15 +6,15 @@ import { Resend } from 'resend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; // Обязательно нужен для Админки
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; 
 
 // Клиенты
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-// Админский клиент для операций с категориями (обход RLS)
+// Админский клиент для операций с категориями и заказами (обход RLS)
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const STORE_EMAIL = 'tvoy-email@example.com'; // ВПИШИ СВОЙ EMAIL
+const STORE_EMAIL = 'tvoy-email@example.com'; 
 
 // --- ХЕЛПЕРЫ ---
 function generateSlug(text: string) {
@@ -35,20 +35,14 @@ function generateSlug(text: string) {
 export async function createCategory(name: string, parentPath: string | null) {
   try {
     const slug = generateSlug(name);
-    // Новый формат пути: parent/slug
     const path = parentPath ? `${parentPath}/${slug}` : slug;
     const level = path.split('/').length;
 
-    // Проверка дублей
     const { data: existing } = await supabaseAdmin.from('categories').select('id').eq('path', path).maybeSingle();
     if (existing) return { success: false, error: 'Категория уже существует' };
 
     const { error } = await supabaseAdmin.from('categories').insert({
-      name,
-      path,
-      parent_path: parentPath, // Важно для дерева
-      level,
-      slug
+      name, path, parent_path: parentPath, level, slug
     });
 
     if (error) throw error;
@@ -61,7 +55,6 @@ export async function createCategory(name: string, parentPath: string | null) {
 
 export async function renameCategoryV2(oldPath: string, newName: string) {
   try {
-    // 1. Узнаем родителя
     const { data: currentCat } = await supabaseAdmin.from('categories').select('parent_path').eq('path', oldPath).single();
     if (!currentCat) throw new Error('Категория не найдена');
 
@@ -71,11 +64,8 @@ export async function renameCategoryV2(oldPath: string, newName: string) {
 
     if (newPath === oldPath) return { success: true };
 
-    // 2. Обновляем саму категорию
     await supabaseAdmin.from('categories').update({ name: newName, path: newPath, slug: newSlug }).eq('path', oldPath);
 
-    // 3. Обновляем все подкатегории (path и parent_path)
-    // Находим детей
     const { data: children } = await supabaseAdmin.from('categories').select('*').like('path', `${oldPath}/%`);
     if (children) {
       for (const child of children) {
@@ -85,8 +75,6 @@ export async function renameCategoryV2(oldPath: string, newName: string) {
       }
     }
 
-    // 4. Обновляем товары (ссылки на категории)
-    // Товары в подпапках
     const { data: productsInSub } = await supabaseAdmin.from('products').select('id, category').ilike('category', `${oldPath}/%`);
     if (productsInSub) {
       for (const p of productsInSub) {
@@ -94,7 +82,6 @@ export async function renameCategoryV2(oldPath: string, newName: string) {
         await supabaseAdmin.from('products').update({ category: newCat }).eq('id', p.id);
       }
     }
-    // Товары в самой папке
     await supabaseAdmin.from('products').update({ category: newPath }).eq('category', oldPath);
 
     revalidatePath('/admin/categories');
@@ -107,21 +94,17 @@ export async function renameCategoryV2(oldPath: string, newName: string) {
 
 export async function deleteCategoryV2(targetPath: string) {
   try {
-    // 1. Сначала отвязываем товары (делаем NULL), НЕ УДАЛЯЕМ ИХ!
-    // Ищем точное совпадение или вложенные
     await supabaseAdmin
       .from('products')
       .update({ category: null })
       .or(`category.eq.${targetPath},category.like.${targetPath}/%`);
 
-    // 2. Удаляем категорию и все подкатегории
     const { error } = await supabaseAdmin
       .from('categories')
       .delete()
       .or(`path.eq.${targetPath},path.like.${targetPath}/%`);
 
     if (error) throw error;
-
     revalidatePath('/admin/categories');
     return { success: true };
   } catch (e: any) {
@@ -131,8 +114,6 @@ export async function deleteCategoryV2(targetPath: string) {
 }
 
 export async function syncCategories() {
-  // Эта функция восстанавливает категории из товаров (если вдруг удалили лишнее)
-  // Но теперь она создает их правильно, со слэшами
   try {
     const { data: products } = await supabaseAdmin.from('products').select('category').not('category', 'is', null);
     if (!products) return { success: true };
@@ -140,27 +121,19 @@ export async function syncCategories() {
     const uniqueCats = Array.from(new Set(products.map(p => p.category))).filter(Boolean);
 
     for (const catPath of uniqueCats) {
-      // catPath: "elektronika/telefony"
       const parts = catPath.split('/'); 
       let currentPath = '';
 
       for (let i = 0; i < parts.length; i++) {
         const partSlug = parts[i];
-        // Делаем имя красивым (первая буква заглавная)
         const name = partSlug.charAt(0).toUpperCase() + partSlug.slice(1);
-        
         const parentPath = currentPath === '' ? null : currentPath;
         currentPath = currentPath === '' ? partSlug : `${currentPath}/${partSlug}`;
 
-        // Если такой категории нет - создаем
         const { data: existing } = await supabaseAdmin.from('categories').select('id').eq('path', currentPath).maybeSingle();
         if (!existing) {
            await supabaseAdmin.from('categories').insert({
-             name, 
-             slug: partSlug,
-             path: currentPath,
-             parent_path: parentPath,
-             level: i + 1
+             name, slug: partSlug, path: currentPath, parent_path: parentPath, level: i + 1
            });
         }
       }
@@ -172,7 +145,7 @@ export async function syncCategories() {
   }
 }
 
-// --- ЛОГИКА EMAIL И ЗАКАЗОВ (ОСТАВЛЯЕМ КАК БЫЛО) ---
+// --- ЛОГИКА EMAIL И ЗАКАЗОВ ---
 
 async function getOrFixUserEmail(userId: string) {
   if (!userId) return null;
@@ -238,7 +211,43 @@ export async function submitOrder(formData: FormData, items: any[], total: numbe
   return { success: true, orderId: order.id };
 }
 
-// --- GETTERS (Обычные запросы) ---
+// --- ИЗБРАННОЕ (НОВОЕ) ---
+
+export async function toggleFavorite(productId: number, userId: string) {
+  if (!userId) return { success: false, error: 'Unauthorized' };
+
+  try {
+    // Проверяем, есть ли уже в избранном
+    const { data: existing } = await supabaseAdmin
+      .from('favorites')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('product_id', productId)
+      .maybeSingle();
+
+    if (existing) {
+      // Удаляем
+      await supabaseAdmin.from('favorites').delete().eq('id', existing.id);
+      return { success: true, action: 'removed' };
+    } else {
+      // Добавляем
+      await supabaseAdmin.from('favorites').insert({ user_id: userId, product_id: productId });
+      return { success: true, action: 'added' };
+    }
+  } catch (e: any) {
+    console.error('Favorite toggle error:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+export async function getUserFavorites(userId: string) {
+  if (!userId) return [];
+  const { data } = await supabaseAdmin.from('favorites').select('product_id').eq('user_id', userId);
+  return data?.map(f => f.product_id) || [];
+}
+
+
+// --- GETTERS ---
 export async function getOrderMessages(orderId: number) {
   const { data } = await supabase.from('order_messages').select('*').eq('order_id', orderId).order('created_at', { ascending: true });
   return data || [];

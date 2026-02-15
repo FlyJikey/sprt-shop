@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, ChevronRight, Loader2, Package } from 'lucide-react';
+import { Menu, X, ChevronRight, Loader2, Package, LayoutGrid } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 
 interface Category {
@@ -13,49 +13,103 @@ interface Category {
   level: number;
 }
 
+// --- ГЛОБАЛЬНЫЙ КЭШ ---
+// Храним данные вне компонента, чтобы они не стирались при смене страниц
+let cachedCategories: Category[] | null = null;
+let isFetching = false;
+let fetchPromise: Promise<Category[] | null> | null = null;
+
 export default function CategoryMenu() {
   const [isOpen, setIsOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>(cachedCategories || []);
+  const [loading, setLoading] = useState(!cachedCategories);
   const [activeRoot, setActiveRoot] = useState<Category | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Загружаем категории 1 раз при старте
   useEffect(() => {
-    const fetchCategories = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name'); // Сортировка по имени
-      
-      if (!error && data) {
-        setCategories(data);
+    let mounted = true;
+
+    const loadData = async () => {
+      // 1. Если есть кэш — используем сразу и выходим
+      if (cachedCategories) {
+        if (mounted) {
+          setCategories(cachedCategories);
+          setLoading(false);
+        }
+        return;
       }
-      setLoading(false);
+
+      // 2. Если запрос уже идет (на другой вкладке/компоненте), ждем его
+      if (isFetching && fetchPromise) {
+         try {
+           const data = await fetchPromise;
+           if (mounted && data) {
+             setCategories(data);
+             setLoading(false);
+           }
+         } catch (err) {
+            // Игнорируем ошибки параллельных запросов
+         }
+         return;
+      }
+
+      // 3. Делаем новый запрос
+      isFetching = true;
+      setLoading(true);
+
+      // Создаем промис запроса, чтобы переиспользовать его
+      fetchPromise = (async () => {
+        try {
+          const { data, error } = await supabase
+            .from('categories')
+            .select('*')
+            .order('name');
+
+          if (error) throw error;
+          
+          cachedCategories = data; // Сохраняем в кэш
+          return data;
+        } catch (error: any) {
+          console.error('Category load error:', error.message);
+          return null;
+        } finally {
+          isFetching = false;
+        }
+      })();
+
+      // Ждем результат
+      const result = await fetchPromise;
+      
+      if (mounted) {
+        if (result) setCategories(result);
+        setLoading(false);
+      }
     };
 
-    fetchCategories();
+    loadData();
 
-    // Закрытие при клике снаружи
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      mounted = false;
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  // 1. Корневые категории (Level 1) - у которых нет родителя
+  // 1. Корневые категории (Level 1)
   const rootCategories = categories.filter(c => !c.parent_path);
 
-  // 2. Получение подкатегорий (Level 2) для выбранного корня
+  // 2. Получение подкатегорий (Level 2)
   const getLevel2 = (rootPath: string) => {
     return categories.filter(c => c.parent_path === rootPath);
   };
 
-  // 3. Получение детей (Level 3) для Level 2
+  // 3. Получение детей (Level 3)
   const getLevel3 = (parentPath: string) => {
     return categories.filter(c => c.parent_path === parentPath);
   };
@@ -81,6 +135,18 @@ export default function CategoryMenu() {
           
           {/* ЛЕВАЯ КОЛОНКА (Корни) */}
           <div className="w-1/3 bg-gray-50 border-r border-gray-100 overflow-y-auto max-h-[600px] py-2 custom-scrollbar">
+            
+            {/* --- БЛОК "ВСЕ ТОВАРЫ" --- */}
+            <Link
+              href="/catalog"
+              onClick={() => setIsOpen(false)}
+              onMouseEnter={() => setActiveRoot(null)}
+              className="w-full text-left px-6 py-4 text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all text-gray-900 hover:bg-blue-50 hover:text-blue-600 border-b border-gray-100 group"
+            >
+              <LayoutGrid size={18} className="text-gray-400 group-hover:text-blue-600 transition-colors"/>
+              Все товары
+            </Link>
+
             {loading ? (
               <div className="flex justify-center py-10"><Loader2 className="animate-spin text-gray-400"/></div>
             ) : (
@@ -88,7 +154,7 @@ export default function CategoryMenu() {
                 <button
                   key={cat.id}
                   onMouseEnter={() => setActiveRoot(cat)}
-                  onClick={() => setActiveRoot(cat)} // Для тач-устройств
+                  onClick={() => setActiveRoot(cat)}
                   className={`w-full text-left px-6 py-4 text-sm font-bold flex justify-between items-center transition-all
                     ${activeRoot?.id === cat.id 
                        ? 'bg-white text-black shadow-sm border-l-4 border-black' 
@@ -100,9 +166,13 @@ export default function CategoryMenu() {
                 </button>
               ))
             )}
+            
+            {!loading && rootCategories.length === 0 && (
+               <div className="p-6 text-xs text-gray-400 text-center">Категории не найдены</div>
+            )}
           </div>
 
-          {/* ПРАВАЯ КОЛОНКА (Подкатегории) */}
+          {/* ПРАВАЯ КОЛОНКА */}
           <div className="flex-1 p-8 overflow-y-auto max-h-[600px] bg-white custom-scrollbar">
             {activeRoot ? (
               <div>
@@ -121,7 +191,6 @@ export default function CategoryMenu() {
                   {getLevel2(activeRoot.path).length > 0 ? (
                     getLevel2(activeRoot.path).map(sub => (
                       <div key={sub.id} className="break-inside-avoid">
-                        {/* Заголовок группы (Level 2) */}
                         <Link 
                           href={`/catalog?category=${encodeURIComponent(sub.path)}`}
                           onClick={() => setIsOpen(false)}
@@ -130,7 +199,6 @@ export default function CategoryMenu() {
                           {sub.name}
                         </Link>
                         
-                        {/* Список ссылок (Level 3) */}
                         <div className="flex flex-col gap-1.5 pl-1">
                           {getLevel3(sub.path).map(child => (
                             <Link

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Menu, X, User, LogOut } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, User, LogOut, Heart } from 'lucide-react';
 import { useCart } from '@/app/store';
 import { supabase } from '@/lib/supabase-client';
 import CategoryMenu from './CategoryMenu';
@@ -60,7 +60,6 @@ export default function Header() {
   return (
     <header className="bg-white sticky top-0 z-40 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Убрали justify-between, чтобы элементы шли подряд слева направо */}
         <div className="flex items-center h-20">
           
           {/* Логотип и Каталог */}
@@ -80,8 +79,8 @@ export default function Header() {
           </div>
 
           {/* Поиск (Desktop) */}
-          {/* ml-8: отступ от каталога. ml-auto (на иконках ниже) отодвинет всё остальное вправо */}
-          <div className="hidden md:flex flex-1 max-w-xl ml-8 lg:ml-12">
+          {/* ml-4: Минимальный отступ от кнопки каталога (притягиваем влево) */}
+          <div className="hidden md:flex flex-1 max-w-xl ml-4">
             <form onSubmit={handleSearch} className="w-full relative">
                 <input
                   type="text"
@@ -94,38 +93,53 @@ export default function Header() {
             </form>
           </div>
 
-          {/* Иконки: Профиль и Корзина */}
-          {/* ml-auto прижимает этот блок к правому краю */}
-          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
+          {/* Иконки: Профиль, Избранное, Корзина */}
+          <div className="flex items-center gap-6 ml-auto">
             
             {/* --- ИКОНКА ПРОФИЛЯ --- */}
             {user ? (
-              <div className="hidden sm:flex items-center gap-2">
-                 <Link 
+               <Link 
                   href="/profile" 
-                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all flex flex-col items-center"
+                  className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
                   title="Личный кабинет"
                 >
-                    <User className="h-6 w-6" />
+                    <User className="h-6 w-6 group-hover:scale-105 transition-transform" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
                 </Link>
-              </div>
             ) : (
               <Link 
                 href="/login" 
-                className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors"
+                className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
               >
-                  Войти
+                  <User className="h-6 w-6 group-hover:scale-105 transition-transform" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Войти</span>
               </Link>
             )}
 
+            {/* --- ИКОНКА ИЗБРАННОГО --- */}
+            <Link 
+              href={user ? "/favorites" : "/login"} 
+              className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
+              title="Избранное"
+            >
+                <Heart className="h-6 w-6 group-hover:scale-105 transition-transform" />
+                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Избранное</span>
+            </Link>
+
             {/* --- ИКОНКА КОРЗИНЫ --- */}
-            <Link href="/cart" className="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all">
-                <ShoppingCart className="h-6 w-6" />
-                {totalItems > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">
-                    {totalItems}
-                    </span>
-                )}
+            <Link 
+                href="/cart" 
+                className="relative flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
+            >
+                <div className="relative">
+                    <ShoppingCart className="h-6 w-6 group-hover:scale-105 transition-transform" />
+                    {totalItems > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white ring-2 ring-white">
+                        {totalItems}
+                        </span>
+                    )}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Корзина</span>
             </Link>
             
             {/* Мобильный бургер */}
@@ -166,6 +180,13 @@ export default function Header() {
                     {link.label}
                 </Link>
              ))}
+             <Link 
+                  href={user ? "/favorites" : "/login"} 
+                  className="flex items-center gap-3 p-3 text-lg font-medium text-gray-800 hover:bg-gray-50 rounded-lg"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                    Избранное
+                </Link>
           </div>
 
           <div className="border-t border-gray-100 pt-4">

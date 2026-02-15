@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Header from '@/components/Header';
 import AddToCart from '@/components/AddToCart';
 import RelatedProducts from '@/components/RelatedProducts'; 
+import FavoriteButton from '@/components/FavoriteButton';
 import { ArrowLeft, Check, AlertCircle, Package } from 'lucide-react';
 
 export const revalidate = 0;
@@ -70,6 +71,11 @@ export default async function ProductPage({ params }: Props) {
               
               {/* Фото */}
               <div className="bg-gray-50 rounded-2xl aspect-square relative flex items-center justify-center border border-gray-100 p-8">
+                {/* Кнопка избранного в углу фото */}
+                <div className="absolute top-4 right-4 z-10">
+                   <FavoriteButton productId={product.id} className="w-12 h-12 shadow-sm bg-white" />
+                </div>
+
                 {product.image_url ? (
                   <div className="relative w-full h-full">
                     <Image 
@@ -120,8 +126,10 @@ export default async function ProductPage({ params }: Props) {
                   <span className="text-xl font-bold text-gray-400">/ {product.unit || 'шт'}</span>
                 </div>
 
-                <div className="w-full max-w-sm mb-10">
-                  <AddToCart product={product} />
+                <div className="w-full max-w-sm mb-10 flex gap-4">
+                  <div className="flex-grow">
+                    <AddToCart product={product} />
+                  </div>
                 </div>
 
                 <div className="border-t border-gray-100 pt-8 mt-auto">
