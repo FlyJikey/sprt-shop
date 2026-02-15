@@ -21,7 +21,6 @@ function CheckoutContent() {
     e.preventDefault();
     setLoading(true);
 
-    // Имитация отправки заказа
     setTimeout(() => {
         clearCart();
         router.push("/success");
@@ -56,8 +55,6 @@ function CheckoutContent() {
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-            
-            {/* ФОРМА */}
             <div>
                 <h1 className="text-3xl font-bold mb-2">Оформление брони</h1>
                 <p className="text-gray-500 text-sm mb-8">Заполните данные для резервирования товара.</p>
@@ -84,7 +81,6 @@ function CheckoutContent() {
                         <input required type="tel" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="+7 (999) 000-00-00" />
                     </div>
 
-                    {/* Блок самовывоза */}
                     <div className="bg-[#F9F9F9] p-6 rounded-lg mt-8 border border-gray-100">
                         <h3 className="font-bold mb-4 flex items-center gap-2">
                             <MapPin size={18} className="text-[#C5A070]" /> Пункт выдачи
@@ -109,7 +105,6 @@ function CheckoutContent() {
                 </form>
             </div>
 
-            {/* ИТОГ */}
             <div className="bg-[#FAFAFA] p-8 h-fit border border-gray-100">
                 <h3 className="font-bold text-lg mb-6 pb-4 border-b border-gray-200">Состав заказа</h3>
                 
@@ -127,22 +122,16 @@ function CheckoutContent() {
                     <span>{totalPrice.toLocaleString()} ₽</span>
                 </div>
             </div>
-
         </div>
       </div>
     </main>
   );
 }
 
-// --- ГЛАВНЫЙ ЭКСПОРТ (ОБЕРТКА) ---
-// Это решает ошибку сборки "useSearchParams() should be wrapped in a suspense boundary"
+// --- ВАЖНО: ГЛАВНЫЙ ЭКСПОРТ (ОБЕРТКА) ---
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="animate-pulse font-bold text-gray-300 tracking-widest">ЗАГРУЗКА...</div>
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <CheckoutContent />
     </Suspense>
   );
