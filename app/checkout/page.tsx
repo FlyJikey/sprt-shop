@@ -1,14 +1,14 @@
 "use client";
 
+import React, { useState, Suspense } from "react";
 import Header from "@/components/Header";
-import { useCart } from "../store"; // Импортируем хук
+import { useCart } from "../store";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
-export default function CheckoutPage() {
-  // 1. Достаем items (для подсчета) и clearCart (для очистки)
+// --- ВНУТРЕННИЙ КОМПОНЕНТ С ЛОГИКОЙ ---
+function CheckoutContent() {
   const { items, clearCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -23,10 +23,7 @@ export default function CheckoutPage() {
 
     // Имитация отправки заказа
     setTimeout(() => {
-        // 2. ВАЖНО: Очищаем корзину перед уходом
         clearCart();
-        
-        // Переходим на страницу успеха
         router.push("/success");
     }, 1500);
   };
@@ -134,5 +131,19 @@ export default function CheckoutPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+// --- ГЛАВНЫЙ ЭКСПОРТ (ОБЕРТКА) ---
+// Это решает ошибку сборки "useSearchParams() should be wrapped in a suspense boundary"
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-pulse font-bold text-gray-300 tracking-widest">ЗАГРУЗКА...</div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }
