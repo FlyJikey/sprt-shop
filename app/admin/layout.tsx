@@ -1,95 +1,71 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import Link from "next/link";
-import { supabase } from "@/lib/supabase-client";
 import { 
   LayoutDashboard, 
   ShoppingBag, 
   Users, 
   Brain, 
   Tag, 
-  LogOut, 
   Package, 
   UploadCloud, 
   Palette
 } from "lucide-react";
+import { redirect } from 'next/navigation';
+import LogoutButton from '@/components/admin/LogoutButton';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
-  // ИСПРАВЛЕНИЕ: <any> говорит TypeScript'у "верь мне, тут будут данные"
-  const [profile, setProfile] = useState<any>(null); 
-  const router = useRouter();
-  const pathname = usePathname();
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          router.push('/admin/login');
-          return;
-        }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {}
+      },
+    }
+  );
 
-        const { data: userProfile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+  const { data: { user } } = await supabase.auth.getUser();
 
-        if (error || !userProfile) {
-          console.error("Ошибка загрузки профиля:", error);
-          router.push('/');
-          return;
-        }
-
-        // Проверка роли
-        if (userProfile.role !== 'admin' && userProfile.role !== 'employee') {
-          router.push('/');
-          return;
-        }
-
-        setProfile(userProfile);
-      } catch (e) {
-        console.error("Auth error:", e);
-        router.push('/');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkUser();
-  }, [router]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/admin/login');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-400">
-        <div className="animate-pulse">Загрузка панели управления...</div>
-      </div>
-    );
+  if (!user) {
+    return <>{children}</>;
   }
 
-  const menuItems = [
-    { name: "Главная", href: "/admin", icon: LayoutDashboard },
-    { name: "Товары", href: "/admin/products", icon: ShoppingBag },
-    { name: "Категории", href: "/admin/categories", icon: Tag },
-    { name: "Заказы", href: "/admin/orders", icon: Package },
-    { name: "Пользователи", href: "/admin/users", icon: Users },
-    { name: "AI Менеджер", href: "/admin/ai", icon: Brain },
-    { name: "Импорт", href: "/admin/import", icon: UploadCloud },
-    { name: "Дизайн", href: "/admin/design", icon: Palette },
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile || (profile.role !== 'admin' && profile.role !== 'employee')) {
+     redirect('/'); 
+  }
+
+  // --- ЛОГИКА МЕНЮ ---
+  
+  // Полный список всех возможных пунктов
+  const allMenuItems = [
+    { href: "/admin", icon: LayoutDashboard, label: "Главная", roles: ['admin'] },
+    { href: "/admin/products", icon: ShoppingBag, label: "Товары", roles: ['admin'] },
+    { href: "/admin/categories", icon: Tag, label: "Категории", roles: ['admin'] },
+    // "orders" доступен и админу, и сотруднику
+    { href: "/admin/orders", icon: Package, label: "Заказы", roles: ['admin', 'employee'] }, 
+    { href: "/admin/users", icon: Users, label: "Пользователи", roles: ['admin'] },
+    { href: "/admin/ai", icon: Brain, label: "AI Менеджер", roles: ['admin'] },
+    { href: "/admin/import", icon: UploadCloud, label: "Импорт", roles: ['admin'] },
+    { href: "/admin/design", icon: Palette, label: "Дизайн", roles: ['admin'] },
   ];
 
+  // Фильтруем пункты согласно роли текущего пользователя
+  const visibleMenuItems = allMenuItems.filter(item => 
+    item.roles.includes(profile.role)
+  );
+
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
+    <div className="min-h-screen flex bg-gray-50 font-sans text-gray-900">
       <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-10">
         <div className="p-6 border-b border-gray-100">
           <Link href="/" className="text-2xl font-black tracking-tighter block">
@@ -99,44 +75,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? "bg-black text-white shadow-md" 
-                    : "text-gray-600 hover:bg-gray-100 hover:text-black"
-                }`}
-              >
-                <item.icon size={18} />
-                {item.name}
-              </Link>
-            );
-          })}
+          {visibleMenuItems.map((item) => (
+             <SidebarItem key={item.href} href={item.href} icon={item.icon} label={item.label} />
+          ))}
         </nav>
 
         <div className="p-4 border-t border-gray-100">
           <div className="px-4 py-3 mb-2 rounded-lg bg-gray-50 border border-gray-100">
             <div className="text-xs text-gray-500 font-bold uppercase mb-1">Вы вошли как</div>
-            <div className="text-sm font-bold truncate">{profile?.email || 'Администратор'}</div>
-            <div className="text-xs text-[#C5A070] capitalize">{profile?.role}</div>
+            <div className="text-sm font-bold truncate" title={user.email}>{user.email}</div>
+            <div className="text-xs text-[#C5A070] capitalize">
+              {profile.role === 'employee' ? 'Сотрудник' : 'Администратор'}
+            </div>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-2 w-full text-red-600 hover:bg-red-50 rounded-lg text-sm font-bold transition-colors"
-          >
-            <LogOut size={18} /> Выйти
-          </button>
+          <LogoutButton /> 
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 md:ml-64 p-8">
         {children}
       </main>
     </div>
+  );
+}
+
+function SidebarItem({ href, icon: Icon, label }: { href: string, icon: any, label: string }) {
+  return (
+    <Link 
+      href={href}
+      className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-black transition-colors group"
+    >
+      <Icon size={18} className="text-gray-400 group-hover:text-black" />
+      {label}
+    </Link>
   );
 }

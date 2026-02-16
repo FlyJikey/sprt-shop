@@ -1,8 +1,11 @@
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
 import { Plus, Search, ChevronLeft, ChevronRight, Edit } from 'lucide-react';
 import DeleteProductButton from '@/components/admin/DeleteProductButton';
-import LimitSelector from '@/components/admin/LimitSelector'; // <-- Импортируем новый компонент
+import LimitSelector from '@/components/admin/LimitSelector';
 
 export const revalidate = 0;
 
@@ -11,6 +14,37 @@ export default async function AdminProductsPage({
 }: {
   searchParams: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
+  // --- 1. БЛОК ЗАЩИТЫ (Проверка роли) ---
+  const cookieStore = await cookies();
+  const supabaseAuth = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {}
+      },
+    }
+  );
+
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+  
+  if (!user) {
+    redirect('/admin/login');
+  }
+
+  const { data: profile } = await supabaseAuth
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  // Если не админ — выгоняем в заказы
+  if (!profile || profile.role !== 'admin') {
+    redirect('/admin/orders');
+  }
+  // ---------------------------------------
+
   const resolvedParams = await searchParams;
   const query = resolvedParams.q || '';
   const page = Number(resolvedParams.page) || 1;
@@ -51,7 +85,7 @@ export default async function AdminProductsPage({
       {/* Панель управления */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
         
-        {/* Поиск (Оставляем формой, так как работает по Enter) */}
+        {/* Поиск */}
         <form className="relative flex-grow w-full md:w-auto">
           <input
             name="q"
@@ -63,7 +97,7 @@ export default async function AdminProductsPage({
           <input type="hidden" name="limit" value={limit} />
         </form>
 
-        {/* Выбор кол-ва товаров (Через компонент) */}
+        {/* Выбор кол-ва товаров */}
         <LimitSelector limit={limit} />
       </div>
 

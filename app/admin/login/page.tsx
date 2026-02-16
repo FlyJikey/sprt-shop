@@ -9,16 +9,15 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true); // Для проверки сессии при загрузке
+  const [pageLoading, setPageLoading] = useState(true); 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
-  // 1. АВТО-РЕДИРЕКТ: Если уже админ — сразу в заказы
+  // 1. АВТО-РЕДИРЕКТ
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        // Проверяем роль тихо, без блокировки UI
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')
@@ -26,11 +25,11 @@ export default function AdminLoginPage() {
           .single();
 
         if (profile && (profile.role === 'admin' || profile.role === 'employee')) {
-          router.replace('/admin/orders'); // Используем replace, чтобы нельзя было вернуться "Назад"
+          router.replace('/admin/orders');
           return;
         }
       }
-      setPageLoading(false); // Если не админ или не залогинен — показываем форму
+      setPageLoading(false);
     };
     checkSession();
   }, [router]);
@@ -57,13 +56,14 @@ export default function AdminLoginPage() {
         .eq('id', user.id)
         .single();
 
-      // Если роли нет или это обычный покупатель
       if (!profile || (profile.role !== 'admin' && profile.role !== 'employee')) {
-        await supabase.auth.signOut(); // Сразу выкидываем
+        await supabase.auth.signOut();
         throw new Error('У этого аккаунта нет прав доступа к админ-панели');
       }
 
-      // 3. Успех -> Сразу в заказы
+      // 3. Успех
+      // ИСПРАВЛЕНИЕ: Обязательно обновляем роутер, чтобы layout увидел куки
+      router.refresh(); 
       router.replace('/admin/orders'); 
       
     } catch (err: any) {

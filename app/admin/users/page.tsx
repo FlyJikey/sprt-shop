@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { UserPlus, Trash2, Shield, User, ShieldCheck, Search, Loader2, Lock } from 'lucide-react';
 import { getStaffUsers, assignRole, revokeAccess } from './actions';
 import { supabase } from '@/lib/supabase-client';
@@ -11,24 +12,49 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  
+  // Состояние авторизации
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const router = useRouter();
 
   // Форма
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'admin' | 'employee'>('employee');
   const [actionLoading, setActionLoading] = useState(false);
 
+  // --- 1. БЛОК ЗАЩИТЫ (CLIENT SIDE) ---
   useEffect(() => {
-    loadData();
-    getCurrentUser();
-  }, []);
-
-  const getCurrentUser = async () => {
-    const { data } = await supabase.auth.getUser();
-    setCurrentUserId(data.user?.id || null);
-  };
+    const checkAccess = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            router.replace('/admin/login');
+            return;
+        }
+        
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+            
+        if (!profile || profile.role !== 'admin') {
+            // Если не админ — выкидываем в заказы
+            router.replace('/admin/orders');
+            return;
+        }
+        
+        // Если всё ок — разрешаем показ и грузим данные
+        setCurrentUserId(user.id);
+        setIsAuthorized(true);
+        loadData(); 
+    };
+    
+    checkAccess();
+  }, [router]);
+  // ------------------------------------
 
   const loadData = async () => {
-    setLoading(true);
+    // Убираем setLoading(true) здесь, чтобы не перекрывать лоадер авторизации
     const data = await getStaffUsers();
     setUsers(data);
     setLoading(false);
@@ -58,6 +84,15 @@ export default function AdminUsersPage() {
     }
     setActionLoading(false);
   };
+
+  // Пока проверяем права — показываем загрузку
+  if (!isAuthorized) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+            <Loader2 className="animate-spin text-gray-400" size={32} />
+        </div>
+      );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">

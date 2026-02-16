@@ -1,38 +1,76 @@
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { 
   Users, 
   ShoppingCart, 
-  RussianRuble, // <--- Заменили DollarSign на RussianRuble
+  RussianRuble, 
   TrendingUp,
   AlertCircle,
   ArrowRight
 } from 'lucide-react';
 import LowStockTrigger from '@/components/admin/LowStockTrigger';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const formatMoney = (amount: number) => {
-  return new Intl.NumberFormat('ru-RU', {
-    style: 'currency',
-    currency: 'RUB',
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
-
 export default async function AdminDashboard() {
+  // 1. Инициализация клиента для проверки АВТОРИЗАЦИИ (Cookies)
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) {}
+      },
+    }
+  );
+
+  // 2. Получаем текущего пользователя
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect('/admin/login');
+  }
+
+  // 3. Получаем роль пользователя
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single();
+
+  // --- ЛОГИКА ДОСТУПА ---
+  // Если это сотрудник, ему нечего делать на дашборде с выручкой.
+  // Отправляем его сразу работать с заказами.
+  if (profile && profile.role === 'employee') {
+    redirect('/admin/orders');
+  }
+
+  // 4. Инициализация Админ-клиента для СТАТИСТИКИ (Service Role)
+  // Используется только если мы остались на странице (т.е. мы Админ)
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   const { data: stats, error } = await supabaseAdmin.rpc('get_admin_stats');
 
   if (error) {
     console.error('Stats error:', error);
-    return <div className="p-8 text-red-500">Ошибка: {error.message}</div>;
+    return <div className="p-8 text-red-500">Ошибка загрузки статистики: {error.message}</div>;
   }
 
   const totalDeals = stats.completed_orders || 1;
   const averageCheck = stats.revenue / totalDeals;
+
+  const formatMoney = (amount: number) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB',
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen font-sans">
@@ -55,7 +93,7 @@ export default async function AdminDashboard() {
               </h3>
             </div>
             <div className="p-3 bg-yellow-50 rounded-xl">
-              <RussianRuble className="w-6 h-6 text-[#C5A070]" /> {/* <--- Новая иконка */}
+              <RussianRuble className="w-6 h-6 text-[#C5A070]" />
             </div>
           </div>
           <p className="text-[10px] text-gray-400">Статусы: processing, done</p>
