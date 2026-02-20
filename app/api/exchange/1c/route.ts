@@ -174,14 +174,35 @@ async function processImportFile(json: any) {
 
   for (let i = 0; i < productsToUpsert.length; i += BATCH_SIZE) {
     const batch = productsToUpsert.slice(i, i + BATCH_SIZE);
+    
+    // 1. Пытаемся сохранить всю партию разом
     const { error } = await supabase
       .from('products')
       .upsert(batch, { onConflict: 'external_id' });
 
     if (error) {
-      console.error(`[1C] ❌ Ошибка Supabase при записи товаров:`, error.message);
+      if (error.message.includes('products_name_key') || error.message.includes('duplicate key')) {
+        console.log(`[1C] ⚠️ Партия из ${batch.length} товаров отклонена из-за дубликата имени. Запускаем поштучное сохранение...`);
+        
+        // 2. Спасательная шлюпка: сохраняем по одному
+        let successCount = 0;
+        for (const product of batch) {
+          const { error: singleError } = await supabase
+            .from('products')
+            .upsert(product, { onConflict: 'external_id' });
+            
+          if (singleError) {
+             console.log(`[1C] ❌ Пропущен товар-дубликат: "${product.name}" (Имя уже занято или дублируется в выгрузке)`);
+          } else {
+             successCount++;
+          }
+        }
+        console.log(`[1C] 🛠 Спасено уникальных товаров из проблемной партии: ${successCount} из ${batch.length}`);
+      } else {
+        console.error(`[1C] ❌ Ошибка Supabase при записи товаров:`, error.message);
+      }
     } else {
-      console.log(`[1C] 💾 Успешно сохранено в Supabase: ${batch.length} товаров.`);
+      console.log(`[1C] 💾 Успешно сохранено в Supabase разом: ${batch.length} товаров.`);
     }
   }
 }
