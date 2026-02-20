@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 1. Создаем начальный ответ
   let response = NextResponse.next({
     request: {
@@ -42,24 +42,25 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // --- ЛОГИКА ЗАЩИТЫ АДМИНКИ ---
-  const isLoginPage = request.nextUrl.pathname.startsWith('/admin/login')
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isLoginPage = request.nextUrl.pathname.startsWith('/admin/login');
+  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
 
   // Если мы идем в админку, И это НЕ страница логина
   if (isAdminRoute && !isLoginPage) {
     // Если пользователя нет — редирект на вход
     if (!user) {
-      const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/admin/login'
-      return NextResponse.redirect(loginUrl)
+      return NextResponse.redirect(new URL('/admin/login', request.url))
     }
+
+    // (Опционально) Дополнительная проверка email, если вы хотите пускать только себя
+    // if (user.email !== 'tvoy-email@example.com') {
+    //    return NextResponse.redirect(new URL('/', request.url))
+    // }
   }
 
   // Если пользователь УЖЕ авторизован и пытается зайти на страницу логина — перекинем его сразу в админку
   if (isLoginPage && user) {
-    const adminUrl = request.nextUrl.clone()
-    adminUrl.pathname = '/admin'
-    return NextResponse.redirect(adminUrl)
+     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
   return response

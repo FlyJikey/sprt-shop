@@ -27,17 +27,53 @@ function transliterate(word: string): string {
   return result.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
+// Вспомогательная функция для проверки авторизации 1С
+function checkBasicAuth(req: NextRequest) {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader) return false;
+  try {
+    const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+    return auth[0] === ONEC_USER && auth[1] === ONEC_PASS;
+  } catch (e) {
+    return false;
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get('mode');
 
   if (mode === 'checkauth') {
-    return new NextResponse(`success\nPHPSESSID\n${crypto.randomUUID()}`, { headers: { 'Content-Type': 'text/plain' } });
+    // Требуем от 1С логин и пароль, если они не переданы или неверны
+    if (!checkBasicAuth(req)) {
+      return new NextResponse('Auth required', {
+        status: 401,
+        headers: { 'WWW-Authenticate': 'Basic realm="1C Exchange"' }
+      });
+    }
+
+    const sessionId = crypto.randomUUID();
+    const responseText = `success\nPHPSESSID\n${sessionId}`;
+    
+    const response = new NextResponse(responseText, { 
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+    });
+    
+    // Обязательно ставим куку в заголовки ответа, 1С часто полагается именно на это
+    response.cookies.set('PHPSESSID', sessionId);
+    
+    return response;
   }
+  
   if (mode === 'init') {
-    return new NextResponse(`zip=no\nfile_limit=100000000`, { headers: { 'Content-Type': 'text/plain' } });
+    return new NextResponse(`zip=no\nfile_limit=100000000`, { 
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+    });
   }
-  return new NextResponse('success', { headers: { 'Content-Type': 'text/plain' } });
+  
+  return new NextResponse('success', { 
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -48,9 +84,11 @@ export async function POST(req: NextRequest) {
   if (mode === 'file') {
     try {
       console.log(`[1C] === НАЧАЛО ЗАГРУЗКИ ФАЙЛА: ${filename} ===`);
+      
+      // В Next.js App Router 1С может присылать данные в разных кодировках
+      // Получаем сырой текст из тела запроса
       const xmlData = await req.text();
       
-      // ДЕБАГ: Смотрим, пришел ли текст
       console.log(`[1C] Длина полученного XML: ${xmlData.length} символов`);
 
       const result = await parseStringPromise(xmlData, { 
@@ -58,7 +96,6 @@ export async function POST(req: NextRequest) {
         ignoreAttrs: true 
       });
 
-      // ДЕБАГ: Выводим структуру, которую увидел парсер (первые 500 символов)
       console.log('[1C] Структура JSON:', JSON.stringify(result).substring(0, 500) + '...');
 
       const isImport = filename.includes('import') || result?.КоммерческаяИнформация?.Каталог;
@@ -72,7 +109,9 @@ export async function POST(req: NextRequest) {
         console.log('[1C] ⚠️ Непонятный тип файла. Не Import и не Offers.');
       }
 
-      return new NextResponse('success', { headers: { 'Content-Type': 'text/plain' } });
+      return new NextResponse('success', { 
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+      });
     } catch (e: any) {
       console.error('[1C] ❌ ОШИБКА:', e);
       return new NextResponse(`failure\n${e.message}`, { status: 500 });
@@ -80,19 +119,21 @@ export async function POST(req: NextRequest) {
   }
 
   if (mode === 'import') {
-    return new NextResponse('success', { headers: { 'Content-Type': 'text/plain' } });
+    return new NextResponse('success', { 
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+    });
   }
 
-  return new NextResponse('success', { headers: { 'Content-Type': 'text/plain' } });
+  return new NextResponse('success', { 
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+  });
 }
 
 async function processImportFile(json: any) {
-  // Пробуем разные варианты путей (иногда 1С выдает разные структуры)
   let rawProducts = json?.КоммерческаяИнформация?.Каталог?.Товары?.Товар;
   
   if (!rawProducts) {
     console.log('[1C] ⚠️ Внимание: Прямой путь к товарам не найден. Проверяем структуру...');
-    // Иногда бывает вложенность другая, проверяем
     if (json?.КоммерческаяИнформация?.Каталог?.Товары) {
        console.log('[1C] Папка "Товары" есть, но внутри пусто или массив.');
     } else {
