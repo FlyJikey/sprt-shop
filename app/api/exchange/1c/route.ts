@@ -27,7 +27,6 @@ function transliterate(word: string): string {
   return result.replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 }
 
-// Вспомогательная функция для проверки авторизации 1С
 function checkBasicAuth(req: NextRequest) {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) return false;
@@ -42,35 +41,38 @@ function checkBasicAuth(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get('mode');
+  const type = searchParams.get('type');
+
+  console.log(`\n[1C] 🔵 Входящий GET-запрос: type=${type}, mode=${mode}`);
 
   if (mode === 'checkauth') {
-    // Требуем от 1С логин и пароль, если они не переданы или неверны
     if (!checkBasicAuth(req)) {
+      console.log('[1C] 🔴 Ошибка авторизации: 1С не передала пароль или он неверный.');
       return new NextResponse('Auth required', {
         status: 401,
         headers: { 'WWW-Authenticate': 'Basic realm="1C Exchange"' }
       });
     }
 
+    console.log('[1C] 🟢 Авторизация успешна. Выдаем PHPSESSID.');
     const sessionId = crypto.randomUUID();
     const responseText = `success\nPHPSESSID\n${sessionId}`;
     
     const response = new NextResponse(responseText, { 
       headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
     });
-    
-    // Обязательно ставим куку в заголовки ответа, 1С часто полагается именно на это
     response.cookies.set('PHPSESSID', sessionId);
-    
     return response;
   }
   
   if (mode === 'init') {
+    console.log('[1C] 🟡 Инициализация (init). Сообщаем 1С, что zip отключен, и ждем файлы.');
     return new NextResponse(`zip=no\nfile_limit=100000000`, { 
       headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
     });
   }
   
+  console.log(`[1C] ⚪ Пропущен неизвестный GET запрос (mode=${mode})`);
   return new NextResponse('success', { 
     headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
   });
@@ -81,49 +83,56 @@ export async function POST(req: NextRequest) {
   const mode = searchParams.get('mode');
   const filename = searchParams.get('filename') || '';
 
+  console.log(`\n[1C] 🟣 Входящий POST-запрос: mode=${mode}, filename=${filename}`);
+
   if (mode === 'file') {
     try {
-      console.log(`[1C] === НАЧАЛО ЗАГРУЗКИ ФАЙЛА: ${filename} ===`);
-      
-      // В Next.js App Router 1С может присылать данные в разных кодировках
-      // Получаем сырой текст из тела запроса
+      console.log(`[1C] ⏳ Читаем содержимое файла ${filename}...`);
       const xmlData = await req.text();
       
-      console.log(`[1C] Длина полученного XML: ${xmlData.length} символов`);
+      console.log(`[1C] 📏 Размер файла ${filename}: ${xmlData.length} символов`);
+
+      if (xmlData.length === 0) {
+        console.log('[1C] ⚠️ Тревога: 1С прислала абсолютно пустой файл!');
+        return new NextResponse('success', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+      }
 
       const result = await parseStringPromise(xmlData, { 
         explicitArray: false, 
         ignoreAttrs: true 
       });
 
-      console.log('[1C] Структура JSON:', JSON.stringify(result).substring(0, 500) + '...');
-
       const isImport = filename.includes('import') || result?.КоммерческаяИнформация?.Каталог;
       const isOffers = filename.includes('offers') || result?.КоммерческаяИнформация?.ПакетПредложений;
 
       if (isImport) {
+        console.log(`[1C] 📦 Распознан файл ТОВАРОВ (import). Начинаем запись в БД...`);
         await processImportFile(result);
       } else if (isOffers) {
+        console.log(`[1C] 💰 Распознан файл ЦЕН И ОСТАТКОВ (offers). Обновляем БД...`);
         await processOffersFile(result);
       } else {
-        console.log('[1C] ⚠️ Непонятный тип файла. Не Import и не Offers.');
+        console.log('[1C] ⚠️ Файл не распознан. Это не товары и не цены.');
       }
 
+      console.log(`[1C] ✅ Обработка файла ${filename} успешно завершена! Отвечаем 1С "success".`);
       return new NextResponse('success', { 
         headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
       });
     } catch (e: any) {
-      console.error('[1C] ❌ ОШИБКА:', e);
+      console.error(`[1C] ❌ КРИТИЧЕСКАЯ ОШИБКА при обработке файла ${filename}:`, e.message);
       return new NextResponse(`failure\n${e.message}`, { status: 500 });
     }
   }
 
   if (mode === 'import') {
+    console.log(`[1C] 🏁 Финиш: 1С прислала команду завершения загрузки (mode=import).`);
     return new NextResponse('success', { 
       headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
     });
   }
 
+  console.log(`[1C] ⚪ Пропущен неизвестный POST запрос (mode=${mode})`);
   return new NextResponse('success', { 
     headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
   });
@@ -133,17 +142,12 @@ async function processImportFile(json: any) {
   let rawProducts = json?.КоммерческаяИнформация?.Каталог?.Товары?.Товар;
   
   if (!rawProducts) {
-    console.log('[1C] ⚠️ Внимание: Прямой путь к товарам не найден. Проверяем структуру...');
-    if (json?.КоммерческаяИнформация?.Каталог?.Товары) {
-       console.log('[1C] Папка "Товары" есть, но внутри пусто или массив.');
-    } else {
-       console.log('[1C] Папка "Товары" вообще не найдена!');
-    }
+    console.log('[1C] ⚠️ Внимание: Прямой путь к товарам в XML не найден. Проверяем структуру...');
     return;
   }
 
   const items = Array.isArray(rawProducts) ? rawProducts : [rawProducts];
-  console.log(`[1C] ✅ Найдено товаров для обработки: ${items.length}`);
+  console.log(`[1C] 📋 Найдено товаров для парсинга: ${items.length} шт.`);
 
   const productsToUpsert: any[] = [];
   const BATCH_SIZE = 500; 
@@ -165,8 +169,6 @@ async function processImportFile(json: any) {
         category: null,
         updated_at: new Date().toISOString()
       });
-    } else {
-      console.log('[1C] ⚠️ Пропущен товар (нет имени или ID):', item);
     }
   }
 
@@ -177,9 +179,9 @@ async function processImportFile(json: any) {
       .upsert(batch, { onConflict: 'external_id' });
 
     if (error) {
-      console.error(`[1C] ❌ Ошибка записи в БД:`, error.message);
+      console.error(`[1C] ❌ Ошибка Supabase при записи товаров:`, error.message);
     } else {
-      console.log(`[1C] ✅ Успешно записано в БД: ${batch.length} шт.`);
+      console.log(`[1C] 💾 Успешно сохранено в Supabase: ${batch.length} товаров.`);
     }
   }
 }
@@ -187,12 +189,12 @@ async function processImportFile(json: any) {
 async function processOffersFile(json: any) {
   const rawOffers = json?.КоммерческаяИнформация?.ПакетПредложений?.Предложения?.Предложение;
   if (!rawOffers) {
-    console.log('[1C] ⚠️ Предложения не найдены в offers.xml');
+    console.log('[1C] ⚠️ Предложения не найдены в файле offers.');
     return;
   }
 
   const items = Array.isArray(rawOffers) ? rawOffers : [rawOffers];
-  console.log(`[1C] ✅ Найдено предложений: ${items.length}`);
+  console.log(`[1C] 📋 Найдено предложений (цен/остатков) для обновления: ${items.length} шт.`);
 
   const updatePromises = items.map((item: any) => {
     const externalId = item.Ид;
@@ -214,6 +216,6 @@ async function processOffersFile(json: any) {
   const CHUNK_SIZE = 50;
   for (let i = 0; i < updatePromises.length; i += CHUNK_SIZE) {
     await Promise.all(updatePromises.slice(i, i + CHUNK_SIZE));
-    console.log(`[1C] Обновлено: ${Math.min(i + CHUNK_SIZE, updatePromises.length)}`);
+    console.log(`[1C] 💾 Обновлено цен/остатков: ${Math.min(i + CHUNK_SIZE, updatePromises.length)}`);
   }
 }
