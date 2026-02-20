@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 
-// ИСПРАВЛЕНИЕ: Используем 'any', чтобы TypeScript не ругался на eslint/typescript настройки
-const nextConfig: any = {
-  // --- ТВОИ ВАЖНЫЕ НАСТРОЙКИ ---
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
@@ -23,12 +21,8 @@ const nextConfig: any = {
   // Важно для работы нейросети
   serverExternalPackages: ['@xenova/transformers'],
 
-  // --- ИГНОРИРОВАНИЕ ОШИБОК (Теперь сработает) ---
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 };
 
