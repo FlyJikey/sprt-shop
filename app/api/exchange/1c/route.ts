@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { parseStringPromise } from 'xml2js';
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
-export const maxDuration = 60; 
+export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -57,24 +59,24 @@ export async function GET(req: NextRequest) {
     console.log('[1C] 🟢 Авторизация успешна. Выдаем PHPSESSID.');
     const sessionId = crypto.randomUUID();
     const responseText = `success\nPHPSESSID\n${sessionId}`;
-    
-    const response = new NextResponse(responseText, { 
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+
+    const response = new NextResponse(responseText, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
     response.cookies.set('PHPSESSID', sessionId);
     return response;
   }
-  
+
   if (mode === 'init') {
     console.log('[1C] 🟡 Инициализация (init). Сообщаем 1С, что zip отключен, и ждем файлы.');
-    return new NextResponse(`zip=no\nfile_limit=100000000`, { 
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+    return new NextResponse(`zip=no\nfile_limit=100000000`, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
   }
-  
+
   console.log(`[1C] ⚪ Пропущен неизвестный GET запрос (mode=${mode})`);
-  return new NextResponse('success', { 
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+  return new NextResponse('success', {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
   });
 }
 
@@ -89,17 +91,23 @@ export async function POST(req: NextRequest) {
     try {
       console.log(`[1C] ⏳ Читаем содержимое файла ${filename}...`);
       const xmlData = await req.text();
-      
+
       console.log(`[1C] 📏 Размер файла ${filename}: ${xmlData.length} символов`);
+
+      // ВРЕМЕННО Сохраняем файл на диск для анализа структуры!
+      if (filename) {
+        fs.writeFileSync(path.join(process.cwd(), filename), xmlData);
+        console.log(`[1C] 💾 Файл ${filename} сохранен локально для драйв-теста.`);
+      }
 
       if (xmlData.length === 0) {
         console.log('[1C] ⚠️ Тревога: 1С прислала абсолютно пустой файл!');
         return new NextResponse('success', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       }
 
-      const result = await parseStringPromise(xmlData, { 
-        explicitArray: false, 
-        ignoreAttrs: true 
+      const result = await parseStringPromise(xmlData, {
+        explicitArray: false,
+        ignoreAttrs: true
       });
 
       const isImport = filename.includes('import') || result?.КоммерческаяИнформация?.Каталог;
@@ -116,8 +124,8 @@ export async function POST(req: NextRequest) {
       }
 
       console.log(`[1C] ✅ Обработка файла ${filename} успешно завершена! Отвечаем 1С "success".`);
-      return new NextResponse('success', { 
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+      return new NextResponse('success', {
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     } catch (e: any) {
       console.error(`[1C] ❌ КРИТИЧЕСКАЯ ОШИБКА при обработке файла ${filename}:`, e.message);
@@ -127,20 +135,20 @@ export async function POST(req: NextRequest) {
 
   if (mode === 'import') {
     console.log(`[1C] 🏁 Финиш: 1С прислала команду завершения загрузки (mode=import).`);
-    return new NextResponse('success', { 
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+    return new NextResponse('success', {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
   }
 
   console.log(`[1C] ⚪ Пропущен неизвестный POST запрос (mode=${mode})`);
-  return new NextResponse('success', { 
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+  return new NextResponse('success', {
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
   });
 }
 
 async function processImportFile(json: any) {
   let rawProducts = json?.КоммерческаяИнформация?.Каталог?.Товары?.Товар;
-  
+
   if (!rawProducts) {
     console.log('[1C] ⚠️ Внимание: Прямой путь к товарам в XML не найден. Проверяем структуру...');
     return;
@@ -150,14 +158,14 @@ async function processImportFile(json: any) {
   console.log(`[1C] 📋 Найдено товаров для парсинга: ${items.length} шт.`);
 
   const productsToUpsert: any[] = [];
-  const BATCH_SIZE = 500; 
+  const BATCH_SIZE = 500;
 
   for (const item of items) {
     const name = item.Наименование;
     const externalId = item.Ид;
 
     if (name && externalId) {
-      const shortId = externalId.split('-')[0]; 
+      const shortId = externalId.split('-')[0];
       const slug = `${transliterate(name)}-${shortId}`;
 
       productsToUpsert.push({
@@ -165,7 +173,7 @@ async function processImportFile(json: any) {
         external_id: externalId,
         slug: slug,
         description: item.Описание || '',
-        embedding: null, 
+        embedding: null,
         category: null,
         updated_at: new Date().toISOString()
       });
@@ -174,7 +182,7 @@ async function processImportFile(json: any) {
 
   for (let i = 0; i < productsToUpsert.length; i += BATCH_SIZE) {
     const batch = productsToUpsert.slice(i, i + BATCH_SIZE);
-    
+
     // 1. Пытаемся сохранить всю партию разом
     const { error } = await supabase
       .from('products')
@@ -183,18 +191,18 @@ async function processImportFile(json: any) {
     if (error) {
       if (error.message.includes('products_name_key') || error.message.includes('duplicate key')) {
         console.log(`[1C] ⚠️ Партия из ${batch.length} товаров отклонена из-за дубликата имени. Запускаем поштучное сохранение...`);
-        
+
         // 2. Спасательная шлюпка: сохраняем по одному
         let successCount = 0;
         for (const product of batch) {
           const { error: singleError } = await supabase
             .from('products')
             .upsert(product, { onConflict: 'external_id' });
-            
+
           if (singleError) {
-             console.log(`[1C] ❌ Пропущен товар-дубликат: "${product.name}" (Имя уже занято или дублируется в выгрузке)`);
+            console.log(`[1C] ❌ Пропущен товар-дубликат: "${product.name}" (Имя уже занято или дублируется в выгрузке)`);
           } else {
-             successCount++;
+            successCount++;
           }
         }
         console.log(`[1C] 🛠 Спасено уникальных товаров из проблемной партии: ${successCount} из ${batch.length}`);
@@ -217,13 +225,22 @@ async function processOffersFile(json: any) {
   const items = Array.isArray(rawOffers) ? rawOffers : [rawOffers];
   console.log(`[1C] 📋 Найдено предложений (цен/остатков) для обновления: ${items.length} шт.`);
 
+  if (items.length > 0) {
+    // Временно выводим структуру первого товара в консоль, чтобы понять, где лежат цены
+    console.log('[1C] 🔍 Пример первого предложения от 1С:', JSON.stringify(items[0], null, 2));
+  }
+
   const updatePromises = items.map((item: any) => {
     const externalId = item.Ид;
     const quantity = parseInt(item.Количество || '0');
+
     let price = 0;
+    // Более гибкий поиск цены
     if (item.Цены?.Цена) {
-      const priceData = Array.isArray(item.Цены.Цена) ? item.Цены.Цена[0] : item.Цены.Цена;
-      price = parseFloat(priceData.ЦенаЗаЕдиницу || '0');
+      const priceArray = Array.isArray(item.Цены.Цена) ? item.Цены.Цена : [item.Цены.Цена];
+      // Пытаемся взять первую попавшуюся цену (обычно она одна, если выгружается только розничная)
+      const priceData = priceArray[0];
+      price = parseFloat(priceData?.ЦенаЗаЕдиницу || priceData?.Значение || '0');
     }
 
     if (!externalId) return null;

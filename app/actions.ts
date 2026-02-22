@@ -1,12 +1,14 @@
 'use server';
 
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { Resend } from 'resend';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!; 
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Клиенты
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -14,7 +16,28 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const STORE_EMAIL = 'tvoy-email@example.com'; 
+const STORE_EMAIL = 'tvoy-email@example.com';
+
+// --- СИСТЕМА БЕЗОПАСНОСТИ ---
+async function verifyAdminSession() {
+  const cookieStore = await cookies();
+  const supabaseAuth = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll() },
+        setAll(cookiesToSet) { }
+      }
+    }
+  );
+
+  const { data: { user } } = await supabaseAuth.auth.getUser();
+  if (!user) return false;
+
+  const { data: profile } = await supabaseAuth.from('profiles').select('role').eq('id', user.id).single();
+  return profile && (profile.role === 'admin' || profile.role === 'employee');
+}
 
 // --- ХЕЛПЕРЫ ---
 function generateSlug(text: string) {
@@ -33,6 +56,8 @@ function generateSlug(text: string) {
 // --- УПРАВЛЕНИЕ КАТЕГОРИЯМИ (V2 - Слэши) ---
 
 export async function createCategory(name: string, parentPath: string | null) {
+  if (!(await verifyAdminSession())) return { success: false, error: 'Unauthorized' };
+
   try {
     const slug = generateSlug(name);
     const path = parentPath ? `${parentPath}/${slug}` : slug;
@@ -54,6 +79,8 @@ export async function createCategory(name: string, parentPath: string | null) {
 }
 
 export async function renameCategoryV2(oldPath: string, newName: string) {
+  if (!(await verifyAdminSession())) return { success: false, error: 'Unauthorized' };
+
   try {
     const { data: currentCat } = await supabaseAdmin.from('categories').select('parent_path').eq('path', oldPath).single();
     if (!currentCat) throw new Error('Категория не найдена');
@@ -93,6 +120,8 @@ export async function renameCategoryV2(oldPath: string, newName: string) {
 }
 
 export async function deleteCategoryV2(targetPath: string) {
+  if (!(await verifyAdminSession())) return { success: false, error: 'Unauthorized' };
+
   try {
     await supabaseAdmin
       .from('products')
@@ -114,6 +143,8 @@ export async function deleteCategoryV2(targetPath: string) {
 }
 
 export async function syncCategories() {
+  if (!(await verifyAdminSession())) return { success: false };
+
   try {
     const { data: products } = await supabaseAdmin.from('products').select('category').not('category', 'is', null);
     if (!products) return { success: true };
@@ -121,7 +152,7 @@ export async function syncCategories() {
     const uniqueCats = Array.from(new Set(products.map(p => p.category))).filter(Boolean);
 
     for (const catPath of uniqueCats) {
-      const parts = catPath.split('/'); 
+      const parts = catPath.split('/');
       let currentPath = '';
 
       for (let i = 0; i < parts.length; i++) {
@@ -132,9 +163,9 @@ export async function syncCategories() {
 
         const { data: existing } = await supabaseAdmin.from('categories').select('id').eq('path', currentPath).maybeSingle();
         if (!existing) {
-           await supabaseAdmin.from('categories').insert({
-             name, slug: partSlug, path: currentPath, parent_path: parentPath, level: i + 1
-           });
+          await supabaseAdmin.from('categories').insert({
+            name, slug: partSlug, path: currentPath, parent_path: parentPath, level: i + 1
+          });
         }
       }
     }
@@ -154,9 +185,9 @@ async function getOrFixUserEmail(userId: string) {
 
   const { data: userData } = await supabaseAdmin.auth.admin.getUserById(userId);
   if (userData?.user?.email) {
-      const foundEmail = userData.user.email;
-      await supabaseAdmin.from('profiles').update({ email: foundEmail }).eq('id', userId);
-      return foundEmail;
+    const foundEmail = userData.user.email;
+    await supabaseAdmin.from('profiles').update({ email: foundEmail }).eq('id', userId);
+    return foundEmail;
   }
   return null;
 }
@@ -184,6 +215,8 @@ export async function sendOrderMessage(orderId: number, text: string, isAdmin: b
 }
 
 export async function updateOrderStatus(orderId: number, newStatus: string) {
+  if (!(await verifyAdminSession())) return { success: false, error: 'Unauthorized' };
+
   await supabaseAdmin.from('orders').update({ status: newStatus }).eq('id', orderId);
   const { data: order } = await supabaseAdmin.from('orders').select('user_id').eq('id', orderId).single();
   if (order?.user_id) {
@@ -195,17 +228,47 @@ export async function updateOrderStatus(orderId: number, newStatus: string) {
 }
 
 export async function submitOrder(formData: FormData, items: any[], total: number, userId?: string) {
-  const { data: order, error } = await supabaseAdmin.from('orders').insert([{ 
-    customer_name: formData.get('name'), customer_phone: formData.get('phone'), 
-    customer_comment: formData.get('comment'), total_price: total, user_id: userId || null 
+  // 1. Проверяем остатки в базе данных
+  const productIds = items.map(i => i.id);
+  const { data: dbProducts } = await supabaseAdmin.from('products').select('id, name, stock').in('id', productIds);
+
+  if (!dbProducts) return { success: false, error: 'Ошибка при проверке товаров' };
+
+  const stockMap: Record<number, { stock: number, name: string }> = {};
+  dbProducts.forEach(p => {
+    stockMap[p.id] = { stock: p.stock ?? 99, name: p.name };
+  });
+
+  for (const item of items) {
+    const dbItem = stockMap[item.id];
+    if (!dbItem) return { success: false, error: `Товар "${item.name}" не найден` };
+    if (dbItem.stock < item.quantity) {
+      return {
+        success: false,
+        error: `Недостаточно товара "${dbItem.name}". Доступно: ${dbItem.stock}`
+      };
+    }
+  }
+
+  // 2. Списываем остатки
+  for (const item of items) {
+    const newStock = stockMap[item.id].stock - item.quantity;
+    await supabaseAdmin.from('products').update({ stock: newStock }).eq('id', item.id);
+  }
+
+  // 3. Создаем заказ
+  const { data: order, error } = await supabaseAdmin.from('orders').insert([{
+    customer_name: formData.get('name'), customer_phone: formData.get('phone'),
+    customer_comment: formData.get('comment'), total_price: total, user_id: userId || null
   }]).select().single();
+
   if (error || !order) return { success: false };
-  
-  const orderItems = items.map(item => ({ 
-    order_id: order.id, product_id: item.id, product_name: item.name, quantity: item.quantity, price: item.price 
+
+  const orderItems = items.map(item => ({
+    order_id: order.id, product_id: item.id, product_name: item.name, quantity: item.quantity, price: item.price
   }));
   await supabaseAdmin.from('order_items').insert(orderItems);
-  
+
   if (userId) await getOrFixUserEmail(userId);
   revalidatePath('/admin/orders');
   return { success: true, orderId: order.id };
@@ -244,6 +307,43 @@ export async function getUserFavorites(userId: string) {
   if (!userId) return [];
   const { data } = await supabaseAdmin.from('favorites').select('product_id').eq('user_id', userId);
   return data?.map(f => f.product_id) || [];
+}
+
+// --- ЛИСТ ОЖИДАНИЯ (WAITLIST) ---
+
+export async function toggleWaitlist(productId: number, userId: string) {
+  if (!userId) return { success: false, error: 'Unauthorized' };
+
+  try {
+    // Проверяем, есть ли уже в листе
+    const { data: existing } = await supabaseAdmin
+      .from('waitlist')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('product_id', productId)
+      .maybeSingle();
+
+    if (existing) {
+      // Удаляем
+      await supabaseAdmin.from('waitlist').delete().eq('id', existing.id);
+      revalidatePath('/profile');
+      return { success: true, action: 'removed' };
+    } else {
+      // Добавляем
+      await supabaseAdmin.from('waitlist').insert({ user_id: userId, product_id: productId });
+      revalidatePath('/profile');
+      return { success: true, action: 'added' };
+    }
+  } catch (e: any) {
+    console.error('Waitlist toggle error:', e);
+    return { success: false, error: e.message };
+  }
+}
+
+export async function getUserWaitlist(userId: string) {
+  if (!userId) return [];
+  const { data } = await supabaseAdmin.from('waitlist').select('product_id').eq('user_id', userId);
+  return data?.map(w => w.product_id) || [];
 }
 
 

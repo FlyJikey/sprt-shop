@@ -36,28 +36,44 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // 3. Получаем пользователя
-  const { data: { user } } = await supabase.auth.getUser()
+  // 3. Инициализируем клиента ТОЛЬКО если маршрут требует защиты или мы обновляем сессию
+  // Но для скорости мы можем обновлять сессию только на определенных маршрутах, либо просто получить пользователя
 
-  // --- ЛОГИКА ЗАЩИТЫ АДМИНКИ ---
   const isLoginPage = request.nextUrl.pathname.startsWith('/admin/login')
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isProfileRoute = request.nextUrl.pathname.startsWith('/profile')
+  const isCheckoutRoute = request.nextUrl.pathname.startsWith('/checkout')
 
-  // Если мы идем в админку, И это НЕ страница логина
-  if (isAdminRoute && !isLoginPage) {
-    // Если пользователя нет — редирект на вход
-    if (!user) {
+  // Оптимизация: делаем запрос к auth API только если это критичные маршруты
+  // Для публичного каталога это сэкономит время загрузки
+  if (isAdminRoute || isProfileRoute || isCheckoutRoute) {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (isAdminRoute && !isLoginPage) {
+      if (!user) {
+        const loginUrl = request.nextUrl.clone()
+        loginUrl.pathname = '/admin/login'
+        return NextResponse.redirect(loginUrl)
+      }
+      // Роль (admin/employee) будет проверена в app/admin/layout.tsx (Node.js runtime)
+      // Edge runtime плохо справляется с прямыми запросами к БД (supabase.from)
+    }
+
+    if (isLoginPage && user) {
+      // Если залогинен и идет на страницу входа — редирект в админку
+      const adminUrl = request.nextUrl.clone()
+      adminUrl.pathname = '/admin'
+      return NextResponse.redirect(adminUrl)
+    }
+
+    if ((isProfileRoute || isCheckoutRoute) && !user) {
       const loginUrl = request.nextUrl.clone()
-      loginUrl.pathname = '/admin/login'
+      loginUrl.pathname = '/login'
       return NextResponse.redirect(loginUrl)
     }
-  }
-
-  // Если пользователь УЖЕ авторизован и пытается зайти на страницу логина — перекинем его сразу в админку
-  if (isLoginPage && user) {
-    const adminUrl = request.nextUrl.clone()
-    adminUrl.pathname = '/admin'
-    return NextResponse.redirect(adminUrl)
+  } else {
+    // Для остальных страниц (главная, каталог) просто обновляем куки без блокирующего запроса getUser
+    await supabase.auth.getSession()
   }
 
   return response

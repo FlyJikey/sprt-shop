@@ -2,6 +2,7 @@
 
 import { useCart } from '@/app/store';
 import { useEffect, useState } from 'react';
+import NotifyButton from './NotifyButton';
 
 interface Product {
   id: number;
@@ -23,12 +24,7 @@ export default function AddToCart({ product }: { product: Product }) {
 
   if (!product.stock || product.stock <= 0) {
     return (
-      <button
-        disabled
-        className="w-full mt-2 bg-gray-100 text-gray-400 py-2 rounded-md font-medium text-sm cursor-not-allowed border border-gray-200"
-      >
-        Нет в наличии
-      </button>
+      <NotifyButton productId={product.id} />
     );
   }
 
@@ -57,11 +53,10 @@ export default function AddToCart({ product }: { product: Product }) {
         <button
           onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
           disabled={cartItem.quantity >= (product.stock || 0)}
-          className={`px-3 py-2 font-bold transition-colors ${
-             cartItem.quantity >= (product.stock || 0) 
-             ? 'text-gray-300 cursor-not-allowed' 
-             : 'text-spartak hover:bg-red-50'
-          }`}
+          className={`px-3 py-2 font-bold transition-colors ${cartItem.quantity >= (product.stock || 0)
+              ? 'text-gray-300 cursor-not-allowed'
+              : 'text-spartak hover:bg-red-50'
+            }`}
         >
           +
         </button>
