@@ -309,24 +309,24 @@ function ProfileContent() {
 
           <section className="flex-1">
             <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 min-h-[500px]">
-              <div className="flex items-center gap-6 mb-8 border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-4 sm:gap-6 mb-8 border-b border-gray-100 pb-4 overflow-x-auto no-scrollbar">
                 <button
                   onClick={() => setActiveTab('orders')}
-                  className={`flex items-center gap-2 font-black text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all ${activeTab === 'orders' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
+                  className={`flex items-center gap-2 font-black text-sm sm:text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all whitespace-nowrap ${activeTab === 'orders' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
                 >
-                  <ShoppingBag size={24} /> Мои покупки
+                  <ShoppingBag className="w-4 h-4 sm:w-6 sm:h-6" /> Мои покупки
                 </button>
                 <button
                   onClick={() => setActiveTab('waitlist')}
-                  className={`flex items-center gap-2 font-black text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all ${activeTab === 'waitlist' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
+                  className={`flex items-center gap-2 font-black text-sm sm:text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all whitespace-nowrap ${activeTab === 'waitlist' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
                 >
-                  <Bell size={24} /> Лист ожидания
+                  <Bell className="w-4 h-4 sm:w-6 sm:h-6" /> Лист ожидания
                 </button>
                 <button
                   onClick={() => setActiveTab('favorites')}
-                  className={`flex items-center gap-2 font-black text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all ${activeTab === 'favorites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
+                  className={`flex items-center gap-2 font-black text-sm sm:text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all whitespace-nowrap ${activeTab === 'favorites' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
                 >
-                  <Heart size={24} /> Избранное
+                  <Heart className="w-4 h-4 sm:w-6 sm:h-6" /> Избранное
                 </button>
               </div>
 
@@ -368,12 +368,12 @@ function ProfileContent() {
                     Вы не подписывались на уведомления
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                     {waitlist.map((item) => {
                       const isAvailable = (item.products?.stock || 0) > 0;
                       return (
-                        <div key={item.id} className="bg-gray-50/50 border border-gray-100 rounded-3xl p-4 flex flex-col hover:border-blue-200 transition-colors group cursor-pointer" onClick={() => router.push(`/product/${item.products?.slug}`)}>
-                          <div className="aspect-square bg-white rounded-2xl mb-4 p-4 flex items-center justify-center border border-gray-50 overflow-hidden relative">
+                        <div key={item.id} className="bg-gray-50/50 border border-gray-100 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col hover:border-blue-200 transition-colors group cursor-pointer" onClick={() => router.push(`/product/${item.products?.slug}`)}>
+                          <div className="aspect-square bg-white rounded-xl sm:rounded-2xl mb-3 sm:mb-4 p-2 sm:p-4 flex items-center justify-center border border-gray-50 overflow-hidden relative">
                             {isAvailable ? (
                               <div className="absolute top-3 left-3 bg-green-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg shadow-sm z-10">
                                 В наличии
@@ -396,15 +396,15 @@ function ProfileContent() {
                                 className="absolute bottom-2 right-2 p-3 bg-black text-white rounded-xl shadow-lg hover:bg-spartak active:scale-95 transition-all z-20 flex"
                                 title="В корзину"
                               >
-                                <ShoppingCart size={18} />
+                                <ShoppingCart className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                               </button>
                             )}
                           </div>
                           <div className="mt-auto">
-                            <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">{item.products?.name}</h3>
-                            <div className="flex justify-between items-center mt-2">
-                              <div className="text-sm font-black text-gray-900">{item.products?.price} ₽</div>
-                              <div className="text-[10px] font-black uppercase tracking-widest text-blue-600 group-hover:text-blue-700 transition-colors text-right">
+                            <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug mb-2 line-clamp-2">{item.products?.name}</h3>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 gap-1 sm:gap-0">
+                              <div className="text-xs sm:text-sm font-black text-gray-900">{item.products?.price} ₽</div>
+                              <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-600 group-hover:text-blue-700 transition-colors sm:text-right">
                                 Подробнее →
                               </div>
                             </div>
@@ -421,11 +421,11 @@ function ProfileContent() {
                     Ваш список избранного пуст
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                     {favorites.map((item) => (
-                      <div key={item.id} className="bg-gray-50/50 border border-gray-100 rounded-3xl p-4 flex flex-col hover:border-red-100 transition-colors group cursor-pointer" onClick={() => router.push(`/product/${item.products?.slug}`)}>
-                        <div className="aspect-square bg-white rounded-2xl mb-4 p-4 flex items-center justify-center border border-gray-50 overflow-hidden relative">
-                          <div className="absolute top-3 left-3 text-red-500 z-10">
+                      <div key={item.id} className="bg-gray-50/50 border border-gray-100 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col hover:border-red-100 transition-colors group cursor-pointer" onClick={() => router.push(`/product/${item.products?.slug}`)}>
+                        <div className="aspect-square bg-white rounded-xl sm:rounded-2xl mb-3 sm:mb-4 p-2 sm:p-4 flex items-center justify-center border border-gray-50 overflow-hidden relative">
+                          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 text-red-500 z-10">
                             <Heart size={20} className="fill-current" />
                           </div>
 
@@ -449,14 +449,14 @@ function ProfileContent() {
                             className="absolute bottom-2 right-2 p-3 bg-black text-white rounded-xl shadow-lg hover:bg-spartak active:scale-95 transition-all z-20 flex"
                             title="В корзину"
                           >
-                            <ShoppingCart size={18} />
+                            <ShoppingCart className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
                           </button>
                         </div>
                         <div className="mt-auto">
-                          <h3 className="font-bold text-gray-900 text-sm leading-snug mb-2 line-clamp-2">{item.products?.name}</h3>
-                          <div className="flex justify-between items-center mt-2">
-                            <div className="text-sm font-black text-gray-900">{item.products?.price} ₽</div>
-                            <div className="text-[10px] font-black uppercase tracking-widest text-red-600 group-hover:text-red-700 transition-colors text-right">
+                          <h3 className="font-bold text-gray-900 text-xs sm:text-sm leading-snug mb-2 line-clamp-2">{item.products?.name}</h3>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-2 gap-1 sm:gap-0">
+                            <div className="text-xs sm:text-sm font-black text-gray-900">{item.products?.price} ₽</div>
+                            <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-red-600 group-hover:text-red-700 transition-colors sm:text-right">
                               Подробнее →
                             </div>
                           </div>

@@ -15,7 +15,7 @@ function HeaderContent() {
   const { items } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(searchParams.get('q') || '');
-  const [navLinks, setNavLinks] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
 
   // Состояние пользователя
   const [user, setUser] = useState<any>(null);
@@ -23,12 +23,12 @@ function HeaderContent() {
   const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
-    // 1. Загружаем навигационные ссылки (верхнее меню)
-    const fetchNav = async () => {
-      const { data } = await supabase.from('nav_links').select('*').order('sort_order');
-      if (data) setNavLinks(data);
+    // 1. Загружаем категории (для мобильного меню)
+    const fetchCategories = async () => {
+      const { data } = await supabase.from('categories').select('*').is('parent_path', null).order('name');
+      if (data) setCategories(data);
     };
-    fetchNav();
+    fetchCategories();
 
     // 2. Проверяем пользователя при загрузке
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -115,13 +115,13 @@ function HeaderContent() {
           </div>
 
           {/* Иконки: Профиль, Избранное, Корзина */}
-          <div className="flex items-center gap-6 ml-auto">
+          <div className="flex items-center gap-4 sm:gap-6 ml-auto">
 
             {/* --- ИКОНКА ПРОФИЛЯ --- */}
             {user ? (
               <Link
                 href="/profile"
-                className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
+                className="flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
                 title="Личный кабинет"
               >
                 <div className="relative">
@@ -130,26 +130,26 @@ function HeaderContent() {
                     <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-600 border border-white"></span>
                   )}
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
+                <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
+                className="flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
               >
                 <User className="h-6 w-6 group-hover:scale-105 transition-transform" />
-                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Войти</span>
+                <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Войти</span>
               </Link>
             )}
 
             {/* --- ИКОНКА ИЗБРАННОГО --- */}
             <Link
               href={user ? "/profile?tab=favorites" : "/login"}
-              className="hidden sm:flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
+              className="flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
               title="Избранное"
             >
               <Heart className="h-6 w-6 group-hover:scale-105 transition-transform" />
-              <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Избранное</span>
+              <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Избранное</span>
             </Link>
 
             {/* --- ИКОНКА КОРЗИНЫ --- */}
@@ -165,7 +165,7 @@ function HeaderContent() {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Корзина</span>
+              <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Корзина</span>
             </Link>
 
             {/* Мобильный бургер */}
@@ -177,42 +177,37 @@ function HeaderContent() {
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Мобильное меню */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full left-0 shadow-xl p-4 space-y-4 h-[calc(100vh-80px)] overflow-y-auto">
-
-          <form onSubmit={handleSearch} className="relative">
+        {/* Мобильный поиск */}
+        <div className="md:hidden px-4 pb-4">
+          <form onSubmit={handleSearch} className="w-full relative">
             <input
               type="text"
-              placeholder="Поиск..."
-              className="w-full pl-10 pr-4 py-3 bg-gray-50 rounded-xl outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="Поиск товаров..."
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-transparent hover:bg-white hover:border-gray-200 focus:bg-white border focus:border-blue-600 rounded-xl outline-none transition-all"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
             />
-            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
           </form>
+        </div>
+      </div>
 
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Меню</p>
-            {navLinks.map((link) => (
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full left-0 shadow-xl p-4 space-y-4 h-[calc(100vh-140px)] overflow-y-auto">
+
+          <div className="pt-2">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Каталог</p>
+            {categories.map((cat) => (
               <Link
-                key={link.id}
-                href={link.href}
+                key={cat.id}
+                href={`/catalog?category=${encodeURIComponent(cat.path)}`}
                 className="block p-3 text-lg font-medium text-gray-800 hover:bg-gray-50 rounded-lg"
                 onClick={() => setIsMenuOpen(false)}
               >
-                {link.label}
+                {cat.name}
               </Link>
             ))}
-            <Link
-              href={user ? "/profile?tab=favorites" : "/login"}
-              className="flex items-center gap-3 p-3 text-lg font-medium text-gray-800 hover:bg-gray-50 rounded-lg"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Избранное
-            </Link>
           </div>
 
           <div className="border-t border-gray-100 pt-4">
