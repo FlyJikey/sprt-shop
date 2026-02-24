@@ -93,7 +93,7 @@ export default function HomePageClient({
                                     href={item.href}
                                     className="group flex flex-col items-center justify-center text-center p-8 bg-white border border-gray-100 rounded-xl hover:shadow-xl hover:border-transparent transition-all duration-300 h-48"
                                 >
-                                    <div className="w-12 h-12 mb-5 text-[#c5a678] group-hover:text-black transition-colors">
+                                    <div className="w-12 h-12 mb-5 text-[#9C2730] group-hover:text-black transition-colors">
                                         <DynamicIcon
                                             name={item.icon_name}
                                             imageUrl={item.custom_image_url}
