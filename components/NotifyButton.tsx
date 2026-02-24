@@ -47,8 +47,11 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
     if (loading) {
         return (
             <button
-                disabled
-                className="w-full mt-2 bg-spartak/50 text-white/70 py-2 rounded-md font-medium text-sm cursor-wait animate-pulse"
+                onClick={(e) => {
+                    e.preventDefault();
+                    if (!user) router.push('/login');
+                }}
+                className="w-full mt-2 bg-spartak text-white py-2 rounded-md hover:bg-opacity-90 transition-all font-medium text-sm"
             >
                 Сообщить о поступлении
             </button>
