@@ -9,6 +9,23 @@ interface NotifyButtonProps {
     productId: number;
 }
 
+// Глобальный кэш для предотвращения 40 запросов на странице каталога одновременно
+let globalFetchPromise: Promise<{ user: any, waitlist: Set<number> }> | null = null;
+
+async function getWaitlistData() {
+    if (!globalFetchPromise) {
+        globalFetchPromise = (async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const waitlist = await getUserWaitlist(user.id);
+                return { user, waitlist: new Set(waitlist) };
+            }
+            return { user: null, waitlist: new Set<number>() };
+        })();
+    }
+    return globalFetchPromise;
+}
+
 export default function NotifyButton({ productId }: NotifyButtonProps) {
     const [isNotifying, setIsNotifying] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -16,17 +33,23 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
     const router = useRouter();
 
     useEffect(() => {
-        async function checkWaitlist() {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
+        let isMounted = true;
 
-            if (user) {
-                const waitlist = await getUserWaitlist(user.id);
-                setIsNotifying(waitlist.includes(productId));
-            }
+        getWaitlistData().then(({ user, waitlist }) => {
+            if (!isMounted) return;
+            setUser(user);
+            setIsNotifying(waitlist.has(productId));
             setLoading(false);
-        }
-        checkWaitlist();
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+            globalFetchPromise = null; // сброс кэша при входе/выходе
+        });
+
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, [productId]);
 
     const handleNotify = async (e: React.MouseEvent) => {
@@ -47,13 +70,10 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
     if (loading) {
         return (
             <button
-                onClick={(e) => {
-                    e.preventDefault();
-                    if (!user) router.push('/login');
-                }}
-                className="w-full mt-2 bg-spartak text-white py-2 rounded-md hover:bg-opacity-90 transition-all font-medium text-sm"
+                disabled
+                className="w-full mt-2 bg-gray-100 text-gray-400 py-2 rounded-md font-medium text-sm cursor-wait animate-pulse"
             >
-                Сообщить о поступлении
+                Загрузка...
             </button>
         );
     }
