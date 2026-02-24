@@ -72,7 +72,12 @@ export default function HeroSlider() {
     resetTimer();
   };
 
-  if (loading) return <div className="h-[400px] w-full bg-gray-50 animate-pulse rounded-[3rem] border border-gray-100" />;
+  if (loading) {
+    return (
+      <div className="relative h-[500px] w-full overflow-hidden rounded-[3rem] bg-gray-50 animate-pulse border-4 border-white shadow-2xl shadow-gray-200" />
+    );
+  }
+
   if (banners.length === 0) return null;
 
   return (

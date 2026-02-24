@@ -119,11 +119,11 @@ export default function HomePageClient({
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {products.map((p) => (
+                        {products.map((p, index) => (
                             <div key={p.id} className="group flex flex-col bg-white border border-gray-100 hover:border-gray-200 hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden relative">
 
                                 {/* Фото область (клик ведет на товар) */}
-                                <div className="aspect-square bg-gray-50 relative flex items-center justify-center p-6">
+                                <div className="aspect-square bg-gray-50 relative flex items-center justify-center p-4 sm:p-6">
 
                                     {/* КНОПКА ИЗБРАННОГО */}
                                     <div className="absolute top-3 right-3 z-20">
@@ -136,7 +136,9 @@ export default function HomePageClient({
                                                 src={p.image_url}
                                                 alt={p.name}
                                                 fill
-                                                className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
+                                                priority={index < 4}
+                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                                className="object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
@@ -151,22 +153,22 @@ export default function HomePageClient({
                                             e.preventDefault();
                                             addItem(p);
                                         }}
-                                        className="absolute bottom-4 right-4 z-10 bg-black text-white w-10 h-10 flex items-center justify-center rounded-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-blue-600 shadow-xl"
+                                        className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 z-10 bg-black text-white w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-blue-600 shadow-xl"
                                     >
-                                        <ShoppingCart size={18} />
+                                        <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </button>
                                 </div>
 
                                 {/* Инфо область */}
-                                <Link href={`/product/${p.slug}`} className="p-5 flex flex-col flex-grow group/info">
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 group-hover/info:text-blue-500 transition-colors">
+                                <Link href={`/product/${p.slug}`} className="p-3 sm:p-5 flex flex-col flex-grow group/info">
+                                    <div className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 sm:mb-2 group-hover/info:text-blue-500 transition-colors">
                                         {p.category}
                                     </div>
-                                    <h3 className="font-bold text-sm text-gray-900 leading-snug line-clamp-2 mb-4 flex-grow group-hover/info:text-blue-600 transition-colors" title={p.name}>
+                                    <h3 className="font-bold text-xs sm:text-sm text-gray-900 leading-snug line-clamp-3 sm:line-clamp-2 mb-2 sm:mb-4 flex-grow group-hover/info:text-blue-600 transition-colors" title={p.name}>
                                         {p.name}
                                     </h3>
-                                    <div className="text-lg font-black text-gray-900">
-                                        {p.price} ₽
+                                    <div className="text-base sm:text-lg font-black text-gray-900">
+                                        {Math.round(p.price).toLocaleString('ru-RU')} ₽
                                     </div>
                                 </Link>
                             </div>

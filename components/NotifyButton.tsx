@@ -71,7 +71,7 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
         return (
             <button
                 disabled
-                className="w-full mt-2 bg-gray-100 text-gray-400 py-2 rounded-md font-medium text-sm cursor-wait animate-pulse"
+                className="w-full mt-2 bg-gray-100 text-gray-400 py-1.5 sm:py-2 rounded-md font-medium text-xs sm:text-sm cursor-wait animate-pulse"
             >
                 Загрузка...
             </button>
@@ -83,7 +83,7 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
             <button
                 onClick={handleNotify}
                 disabled={loading}
-                className="w-full mt-2 bg-gray-800 text-white py-2 rounded-md hover:bg-opacity-90 transition-all font-medium text-sm"
+                className="w-full mt-2 bg-gray-800 text-white py-1.5 sm:py-2 rounded-md hover:bg-opacity-90 transition-all font-medium text-xs sm:text-sm"
             >
                 В листе ожидания
             </button>
@@ -94,7 +94,7 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
         <button
             onClick={handleNotify}
             disabled={loading}
-            className="w-full mt-2 bg-spartak text-white py-2 rounded-md hover:bg-opacity-90 transition-all font-medium text-sm"
+            className="w-full mt-2 bg-spartak text-white py-1.5 sm:py-2 rounded-md hover:bg-opacity-90 transition-all font-medium text-xs sm:text-sm"
         >
             Сообщить о поступлении
         </button>

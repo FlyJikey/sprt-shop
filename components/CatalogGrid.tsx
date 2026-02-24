@@ -83,14 +83,14 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {products.map((product, index) => (
           <div
             key={product.id}
-            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 flex flex-col border border-gray-100 h-full group relative"
+            className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-3 sm:p-5 flex flex-col border border-gray-100 h-full group relative"
           >
             {/* Фото товара */}
-            <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
+            <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-3 sm:mb-4 bg-gray-50 rounded-xl overflow-hidden">
               {product.image_url && product.image_url !== '/window.svg' ? (
                 <Image
                   src={product.image_url}
@@ -113,23 +113,23 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
             </Link>
 
             {/* Описание */}
-            <Link href={`/product/${product.slug}`} className="block flex-grow mb-4">
-              <div className="text-[10px] text-red-600 mb-1.5 font-bold tracking-widest uppercase line-clamp-1 opacity-80">
+            <Link href={`/product/${product.slug}`} className="block flex-grow mb-2 sm:mb-4">
+              <div className="text-[9px] sm:text-[10px] text-red-600 mb-1 sm:mb-1.5 font-bold tracking-widest uppercase line-clamp-1 opacity-80">
                 {product.category || 'Товар'}
               </div>
-              <h3 className="font-semibold text-gray-800 line-clamp-2 group-hover:text-red-700 transition-colors text-sm leading-relaxed" title={product.name}>
+              <h3 className="font-semibold text-gray-800 line-clamp-3 sm:line-clamp-2 group-hover:text-red-700 transition-colors text-xs sm:text-sm leading-snug sm:leading-relaxed" title={product.name}>
                 {product.name}
               </h3>
             </Link>
 
             {/* Блок цены и покупки */}
-            <div className="mt-auto pt-4 border-t border-gray-50 space-y-3">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-black text-gray-900 tracking-tight">
+            <div className="mt-auto pt-3 sm:pt-4 border-t border-gray-50 space-y-2 sm:space-y-3">
+              <div className="flex items-baseline gap-1 sm:gap-1.5">
+                <span className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight">
                   {/* Исправление: принудительная русская локаль */}
                   {Math.round(product.price).toLocaleString('ru-RU')}
                 </span>
-                <span className="text-sm font-bold text-gray-400 uppercase">₽</span>
+                <span className="text-xs sm:text-sm font-bold text-gray-400 uppercase">₽</span>
               </div>
               <AddToCart product={product} />
             </div>
