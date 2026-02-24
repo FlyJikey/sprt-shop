@@ -231,7 +231,21 @@ async function processOffersFile(json: any) {
 
   if (items.length > 0) {
     // Временно выводим структуру первого товара в консоль, чтобы понять, где лежат цены
-    console.log('[1C] 🔍 Пример первого предложения от 1С:', JSON.stringify(items[0], null, 2));
+    const debugOfferJson = JSON.stringify(items[0], null, 2);
+    console.log('[1C] 🔍 Пример первого предложения от 1С:', debugOfferJson);
+
+    // Записываем структуру предложения первого товара в БД как отдельный товар "DEBUG_OFFER_LOG"
+    console.log('[1C] 📝 Сохраняем DEBUG вариант первого предложения в Supabase...');
+    await supabase.from('products').upsert({
+      name: '🔴 DEBUG_OFFER_LOG',
+      external_id: 'debug-offer',
+      slug: 'debug-offer-log',
+      description: debugOfferJson,
+      price: 0,
+      stock: 0,
+      category: null,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'external_id' });
   }
 
   const updatePromises = items.map((item: any) => {
