@@ -2,6 +2,8 @@ import Header from '@/components/Header';
 import HomePageClient from '@/components/HomePageClient';
 import { createClient } from '@supabase/supabase-js';
 
+export const revalidate = 0;
+
 const PRODUCTS_PER_PAGE = 8;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
