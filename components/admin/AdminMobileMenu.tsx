@@ -3,13 +3,26 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LayoutDashboard, ShoppingBag, Tag, Package, Users, Brain, UploadCloud, Palette } from 'lucide-react';
 import LogoutButton from '@/components/admin/LogoutButton';
 
 interface MenuItem {
     href: string;
-    icon: any;
     label: string;
+}
+
+const getIconForHref = (href: string) => {
+    switch (href) {
+        case "/admin": return LayoutDashboard;
+        case "/admin/products": return ShoppingBag;
+        case "/admin/categories": return Tag;
+        case "/admin/orders": return Package;
+        case "/admin/users": return Users;
+        case "/admin/ai": return Brain;
+        case "/admin/import": return UploadCloud;
+        case "/admin/design": return Palette;
+        default: return Tag;
+    }
 }
 
 interface AdminMobileMenuProps {
@@ -51,7 +64,7 @@ export default function AdminMobileMenu({ userEmail, userRole, menuItems }: Admi
                 <div className="fixed inset-0 top-16 bg-white z-40 overflow-y-auto pt-4 shadow-2xl flex flex-col">
                     <nav className="flex-1 px-4 space-y-2">
                         {menuItems.map((item) => {
-                            const Icon = item.icon;
+                            const Icon = getIconForHref(item.href);
                             const isActive = pathname === item.href;
                             return (
                                 <Link

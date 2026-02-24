@@ -70,7 +70,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <AdminMobileMenu
         userEmail={user.email || ''}
         userRole={profile.role}
-        menuItems={visibleMenuItems}
+        menuItems={visibleMenuItems.map(i => ({ href: i.href, label: i.label }))}
       />
 
       <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-10">
