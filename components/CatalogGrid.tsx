@@ -7,6 +7,8 @@ import AddToCart from '@/components/AddToCart';
 import { Loader2 } from 'lucide-react';
 import FavoriteButton from '@/components/FavoriteButton';
 
+import Image from 'next/image';
+
 interface Product {
   id: number;
   slug: string;
@@ -29,14 +31,14 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  
+
   const hasMore = products.length < totalCount;
 
   const loadMore = async () => {
     setLoading(true);
     const nextPage = page + 1;
     const itemsPerPage = 40;
-    
+
     const from = (nextPage - 1) * itemsPerPage;
     const to = from + itemsPerPage - 1;
 
@@ -47,22 +49,22 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
     }
 
     if (category) {
-       dbQuery = dbQuery.ilike('category', `${category}%`);
+      dbQuery = dbQuery.ilike('category', `${category}%`);
     }
 
     switch (sort) {
-      case 'price_asc': 
-        dbQuery = dbQuery.order('price', { ascending: true }).order('id', { ascending: true }); 
+      case 'price_asc':
+        dbQuery = dbQuery.order('price', { ascending: true }).order('id', { ascending: true });
         break;
-      case 'price_desc': 
-        dbQuery = dbQuery.order('price', { ascending: false }).order('id', { ascending: true }); 
+      case 'price_desc':
+        dbQuery = dbQuery.order('price', { ascending: false }).order('id', { ascending: true });
         break;
-      case 'name_asc': 
-        dbQuery = dbQuery.order('name', { ascending: true }).order('id', { ascending: true }); 
+      case 'name_asc':
+        dbQuery = dbQuery.order('name', { ascending: true }).order('id', { ascending: true });
         break;
       case 'newest':
-      default: 
-        dbQuery = dbQuery.order('id', { ascending: false }); 
+      default:
+        dbQuery = dbQuery.order('id', { ascending: false });
         break;
     }
 
@@ -90,17 +92,19 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
             {/* Фото товара */}
             <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-4 bg-gray-50 rounded-xl overflow-hidden">
               {product.image_url && product.image_url !== '/window.svg' ? (
-                  <img 
-                    src={product.image_url} 
-                    alt={product.name} 
-                    className="w-full h-full object-contain p-2 mix-blend-multiply group-hover:scale-110 transition-transform duration-500" 
-                  />
+                <Image
+                  src={product.image_url}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  className="object-contain p-2 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                />
               ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs italic">
-                    Фото ожидается
-                  </div>
+                <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs italic">
+                  Фото ожидается
+                </div>
               )}
-              
+
               {/* НОВАЯ КНОПКА ИЗБРАННОГО ЧЕРЕЗ КОМПОНЕНТ */}
               <div className="absolute top-2 right-2 z-10">
                 <FavoriteButton productId={product.id} className="p-2 shadow-sm" />
@@ -120,11 +124,11 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
             {/* Блок цены и покупки */}
             <div className="mt-auto pt-4 border-t border-gray-50 space-y-3">
               <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl font-black text-gray-900 tracking-tight">
-                    {/* Исправление: принудительная русская локаль */}
-                    {Math.round(product.price).toLocaleString('ru-RU')}
-                  </span>
-                  <span className="text-sm font-bold text-gray-400 uppercase">₽</span>
+                <span className="text-2xl font-black text-gray-900 tracking-tight">
+                  {/* Исправление: принудительная русская локаль */}
+                  {Math.round(product.price).toLocaleString('ru-RU')}
+                </span>
+                <span className="text-sm font-bold text-gray-400 uppercase">₽</span>
               </div>
               <AddToCart product={product} />
             </div>

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase-client';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Banner {
   id: number;
@@ -21,11 +22,11 @@ export default function HeroSlider() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentTranslate, setCurrentTranslate] = useState(0);
-  
+
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -75,24 +76,27 @@ export default function HeroSlider() {
   if (banners.length === 0) return null;
 
   return (
-    <div 
+    <div
       className="relative h-[500px] w-full overflow-hidden rounded-[3rem] cursor-grab active:cursor-grabbing select-none group shadow-2xl shadow-gray-200 border-4 border-white"
       onMouseDown={handleTouchStart} onMouseMove={handleTouchMove} onMouseUp={handleTouchEnd}
       onMouseLeave={() => isDragging && handleTouchEnd()}
       onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}
     >
-      <div 
+      <div
         className="flex h-full transition-transform duration-700 cubic-bezier(0.4, 0, 0.2, 1)"
         style={{ transform: `translateX(calc(-${current * 100}% + ${currentTranslate}px))`, transition: isDragging ? 'none' : 'transform 0.7s ease-out' }}
       >
         {banners.map((banner, index) => (
           <div key={banner.id} className="min-w-full h-full relative overflow-hidden bg-gray-900">
             {/* ФОН С ЗУМОМ И ПРАВИЛЬНЫМИ МИНИАТЮРАМИ */}
-            <img 
-              src={banner.image_url} 
-              alt={banner.title || 'Slide'} 
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none transition-transform duration-1000"
-              style={{ 
+            <Image
+              src={banner.image_url}
+              alt={banner.title || 'Slide'}
+              fill
+              priority={index === 0}
+              sizes="100vw"
+              className="object-cover pointer-events-none transition-transform duration-1000"
+              style={{
                 objectPosition: banner.image_position || '50% 50%',
                 transform: `scale(${(banner.image_scale || 100) / 100})`
               }}
@@ -101,18 +105,18 @@ export default function HeroSlider() {
             <div className="absolute inset-0 bg-black/30" />
 
             <div className="relative z-10 h-full flex flex-col justify-center px-12 md:px-24 max-w-4xl pointer-events-none">
-              <h2 
+              <h2
                 style={{ color: banner.text_color || '#fff' }}
                 className="text-5xl md:text-7xl font-black leading-[0.9] mb-6 tracking-tighter drop-shadow-2xl"
-                dangerouslySetInnerHTML={{ __html: banner.title || '' }} 
+                dangerouslySetInnerHTML={{ __html: banner.title || '' }}
               />
-              <p 
+              <p
                 style={{ color: banner.text_color || '#ddd' }}
                 className="text-lg md:text-xl font-bold mb-10 opacity-80 drop-shadow-md whitespace-pre-line max-w-xl"
               >
                 {banner.description}
               </p>
-              
+
               {banner.button_text && (
                 <Link href={banner.button_link || '/catalog'} className="pointer-events-auto w-max">
                   <button className="bg-white text-black px-10 py-5 font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all flex items-center gap-3 rounded-2xl shadow-2xl">

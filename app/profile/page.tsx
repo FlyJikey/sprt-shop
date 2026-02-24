@@ -12,6 +12,7 @@ import {
   Bell, Heart
 } from 'lucide-react';
 import { getOrderMessages, sendOrderMessage } from '@/app/actions';
+import Image from 'next/image';
 
 function ProfileContent() {
   const [user, setUser] = useState<any>(null);
@@ -385,7 +386,7 @@ function ProfileContent() {
                             )}
 
                             {item.products?.image_url ? (
-                              <img src={item.products.image_url} alt="product" className="object-contain w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                              <Image src={item.products.image_url} alt="product" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
                             ) : (
                               <Package className="text-gray-300" size={32} />
                             )}
@@ -430,7 +431,7 @@ function ProfileContent() {
                           </div>
 
                           {item.products?.image_url ? (
-                            <img src={item.products.image_url} alt="product" className="object-contain w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                            <Image src={item.products.image_url} alt="product" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
                           ) : (
                             <Package className="text-gray-300" size={32} />
                           )}
@@ -489,8 +490,8 @@ function ProfileContent() {
                 <div className="space-y-3">
                   {selectedOrder.order_items?.map((item: any) => (
                     <div key={item.id} className="flex items-center gap-5 p-4 bg-white border border-gray-100 rounded-[2rem] hover:border-blue-200 transition-colors">
-                      <div className="w-16 h-16 bg-gray-50 rounded-2xl border flex items-center justify-center p-2 flex-shrink-0">
-                        {item.products?.image_url ? <img src={item.products.image_url} className="object-contain w-full h-full" alt={item.product_name} /> : <div className="text-[8px] text-gray-300 font-bold uppercase">Фото</div>}
+                      <div className="w-16 h-16 bg-gray-50 rounded-2xl border flex items-center justify-center p-2 flex-shrink-0 relative overflow-hidden">
+                        {item.products?.image_url ? <Image src={item.products.image_url} fill sizes="64px" className="object-contain p-1" alt={item.product_name} /> : <div className="text-[8px] text-gray-300 font-bold uppercase">Фото</div>}
                       </div>
                       <div className="flex-grow">
                         <h4 className="font-bold text-gray-900 text-sm leading-tight mb-1">{item.product_name}</h4>
