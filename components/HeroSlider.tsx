@@ -103,7 +103,8 @@ export default function HeroSlider() {
               className="object-cover pointer-events-none transition-transform duration-1000"
               style={{
                 objectPosition: banner.image_position || '50% 50%',
-                transform: `scale(${(banner.image_scale || 100) / 100})`
+                transform: `scale(${(banner.image_scale || 100) / 100})`,
+                transformOrigin: banner.image_position || '50% 50%'
               }}
               draggable={false}
             />

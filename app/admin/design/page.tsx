@@ -351,7 +351,8 @@ export default function DesignPage() {
                                         className="w-full h-full object-cover"
                                         style={{
                                             objectPosition: banner.image_position || '50% 50%',
-                                            transform: `scale(${(banner.image_scale || 100) / 100})`
+                                            transform: `scale(${(banner.image_scale || 100) / 100})`,
+                                            transformOrigin: banner.image_position || '50% 50%'
                                         }}
                                         alt="slide"
                                     />
@@ -502,8 +503,9 @@ export default function DesignPage() {
                                             src={currentBanner.image_url}
                                             className="w-full h-full object-cover transition-all duration-300"
                                             style={{
-                                                objectPosition: currentBanner.image_position,
-                                                transform: `scale(${currentBanner.image_scale / 100})`
+                                                objectPosition: currentBanner.image_position || '50% 50%',
+                                                transform: `scale(${currentBanner.image_scale / 100})`,
+                                                transformOrigin: currentBanner.image_position || '50% 50%'
                                             }}
                                             alt="Preview"
                                         />
