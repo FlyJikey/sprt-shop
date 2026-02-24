@@ -12,10 +12,10 @@ export default function DynamicIcon({ name, imageUrl, className }: DynamicIconPr
   if (imageUrl) {
     return (
       <div className={`relative overflow-hidden ${className}`}>
-        <Image 
-          src={imageUrl} 
-          alt={name || 'icon'} 
-          fill 
+        <Image
+          src={imageUrl}
+          alt={name || 'icon'}
+          fill
           className="object-contain"
         />
       </div>
@@ -24,10 +24,10 @@ export default function DynamicIcon({ name, imageUrl, className }: DynamicIconPr
 
   // 2. Если имя иконки есть — ищем в Lucide
   if (name) {
-    // Приводим к правильному регистру: 'volleyball' -> 'Volleyball'
-    // Lucide экспортирует компоненты с большой буквы
-    const PascalName = name.charAt(0).toUpperCase() + name.slice(1);
-    
+    // Приводим к правильному регистру: 'fishing-hook' -> 'FishingHook'
+    // Lucide экспортирует компоненты с большой буквы в формате PascalCase
+    const PascalName = name.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+
     // @ts-ignore
     const IconComponent = Icons[PascalName] || Icons[name];
 
