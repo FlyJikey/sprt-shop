@@ -100,17 +100,18 @@ export default function DesignPage() {
         const newItems = [...navLinks];
         const swapIndex = direction === 'up' ? index - 1 : index + 1;
 
-        // Меняем местами sort_order
-        const tempOrder = newItems[index].sort_order;
-        newItems[index].sort_order = newItems[swapIndex].sort_order;
-        newItems[swapIndex].sort_order = tempOrder;
+        // Визуально меняем местами
+        const temp = newItems[index];
+        newItems[index] = newItems[swapIndex];
+        newItems[swapIndex] = temp;
 
-        // В базе
-        await (supabase.from('nav_links') as any).upsert([
-            { id: newItems[index].id, sort_order: newItems[index].sort_order },
-            { id: newItems[swapIndex].id, sort_order: newItems[swapIndex].sort_order }
-        ]);
+        // Пересчитываем порядок для всех элементов, чтобы избежать дубликатов (если они были)
+        const updates = newItems.map((item, i) => {
+            item.sort_order = i + 1;
+            return (supabase.from('nav_links') as any).update({ sort_order: i + 1 }).eq('id', item.id);
+        });
 
+        await Promise.all(updates);
         fetchData();
     };
 
@@ -176,15 +177,16 @@ export default function DesignPage() {
         const newItems = [...gridItems];
         const swapIndex = direction === 'left' ? index - 1 : index + 1;
 
-        const tempOrder = newItems[index].sort_order;
-        newItems[index].sort_order = newItems[swapIndex].sort_order;
-        newItems[swapIndex].sort_order = tempOrder;
+        const temp = newItems[index];
+        newItems[index] = newItems[swapIndex];
+        newItems[swapIndex] = temp;
 
-        await (supabase.from('grid_categories') as any).upsert([
-            { id: newItems[index].id, sort_order: newItems[index].sort_order },
-            { id: newItems[swapIndex].id, sort_order: newItems[swapIndex].sort_order }
-        ]);
+        const updates = newItems.map((item, i) => {
+            item.sort_order = i + 1;
+            return (supabase.from('grid_categories') as any).update({ sort_order: i + 1 }).eq('id', item.id);
+        });
 
+        await Promise.all(updates);
         fetchData();
     };
 
@@ -254,15 +256,16 @@ export default function DesignPage() {
         const newItems = [...banners];
         const swapIndex = direction === 'up' ? index - 1 : index + 1;
 
-        const tempOrder = newItems[index].sort_order;
-        newItems[index].sort_order = newItems[swapIndex].sort_order;
-        newItems[swapIndex].sort_order = tempOrder;
+        const temp = newItems[index];
+        newItems[index] = newItems[swapIndex];
+        newItems[swapIndex] = temp;
 
-        await (supabase.from('hero_banners') as any).upsert([
-            { id: newItems[index].id, sort_order: newItems[index].sort_order },
-            { id: newItems[swapIndex].id, sort_order: newItems[swapIndex].sort_order }
-        ]);
+        const updates = newItems.map((item, i) => {
+            item.sort_order = i + 1;
+            return (supabase.from('hero_banners') as any).update({ sort_order: i + 1 }).eq('id', item.id);
+        });
 
+        await Promise.all(updates);
         fetchData();
     };
 
