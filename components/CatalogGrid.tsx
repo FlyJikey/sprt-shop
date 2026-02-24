@@ -84,7 +84,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
             key={product.id}
             className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-5 flex flex-col border border-gray-100 h-full group relative"
@@ -96,6 +96,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
                   src={product.image_url}
                   alt={product.name}
                   fill
+                  priority={index < 4}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-contain p-2 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                 />

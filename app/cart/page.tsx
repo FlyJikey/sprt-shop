@@ -66,7 +66,7 @@ export default function CartPage() {
       setOrderCompleteId(result.orderId);
       setIsCheckoutOpen(false);
     } else {
-      alert('Ошибка: ' + result.message);
+      alert('Ошибка: ' + result.error);
     }
   };
 

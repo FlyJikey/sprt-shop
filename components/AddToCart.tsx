@@ -54,8 +54,8 @@ export default function AddToCart({ product }: { product: Product }) {
           onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}
           disabled={cartItem.quantity >= (product.stock || 0)}
           className={`px-3 py-2 font-bold transition-colors ${cartItem.quantity >= (product.stock || 0)
-              ? 'text-gray-300 cursor-not-allowed'
-              : 'text-spartak hover:bg-red-50'
+            ? 'text-gray-300 cursor-not-allowed'
+            : 'text-spartak hover:bg-red-50'
             }`}
         >
           +

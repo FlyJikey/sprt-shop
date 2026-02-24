@@ -48,9 +48,9 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
         return (
             <button
                 disabled
-                className="w-full mt-2 bg-gray-100 text-gray-400 py-2 rounded-md font-medium text-sm cursor-not-allowed"
+                className="w-full mt-2 bg-spartak/50 text-white/70 py-2 rounded-md font-medium text-sm cursor-wait animate-pulse"
             >
-                Загрузка...
+                Сообщить о поступлении
             </button>
         );
     }
