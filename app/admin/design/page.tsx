@@ -350,6 +350,7 @@ export default function DesignPage() {
                                         src={banner.image_url}
                                         className="w-full h-full object-cover"
                                         style={{
+                                            objectFit: (banner.image_scale || 100) < 100 ? 'contain' : 'cover',
                                             objectPosition: banner.image_position || '50% 50%',
                                             transform: `scale(${(banner.image_scale || 100) / 100})`,
                                             transformOrigin: banner.image_position || '50% 50%'
@@ -503,6 +504,7 @@ export default function DesignPage() {
                                             src={currentBanner.image_url}
                                             className="w-full h-full object-cover transition-all duration-300"
                                             style={{
+                                                objectFit: currentBanner.image_scale < 100 ? 'contain' : 'cover',
                                                 objectPosition: currentBanner.image_position || '50% 50%',
                                                 transform: `scale(${currentBanner.image_scale / 100})`,
                                                 transformOrigin: currentBanner.image_position || '50% 50%'

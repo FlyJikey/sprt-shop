@@ -102,6 +102,7 @@ export default function HeroSlider() {
               sizes="100vw"
               className="object-cover pointer-events-none transition-transform duration-1000"
               style={{
+                objectFit: (banner.image_scale || 100) < 100 ? 'contain' : 'cover',
                 objectPosition: banner.image_position || '50% 50%',
                 transform: `scale(${(banner.image_scale || 100) / 100})`,
                 transformOrigin: banner.image_position || '50% 50%'
