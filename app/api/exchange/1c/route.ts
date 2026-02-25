@@ -248,9 +248,15 @@ async function processOffersFile(json: any) {
     }, { onConflict: 'external_id' });
   }
 
-  const updatePromises = items.map((item: any) => {
+  const updatePromises = items.map((item: any, index: number) => {
     const externalId = item.Ид;
-    const quantity = parseInt(item.Количество || '0');
+    let quantity = parseInt(item.Количество || '0');
+
+    // Часто 1С присылает остатки в отдельном поле Остатки/Остаток
+    if (item.Остатки?.Остаток) {
+      const rests = Array.isArray(item.Остатки.Остаток) ? item.Остатки.Остаток : [item.Остатки.Остаток];
+      if (rests[0]?.Количество) quantity = parseInt(rests[0].Количество || '0');
+    }
 
     let price = 0;
     // Более гибкий поиск цены
@@ -259,6 +265,13 @@ async function processOffersFile(json: any) {
       // Пытаемся взять первую попавшуюся цену (обычно она одна, если выгружается только розничная)
       const priceData = priceArray[0];
       price = parseFloat(priceData?.ЦенаЗаЕдиницу || priceData?.Значение || '0');
+    }
+
+    if (index < 5) {
+      console.log(`[1C DEBUG] Товар #${index + 1}: ИД="${externalId}", Разобрано количество=${quantity}, Разобрана цена=${price}`);
+      if (externalId && externalId.includes('#')) {
+        console.log(`[1C DEBUG] ⚠️ Внимание: ИД содержит "#" (Характеристика/Вариант). Он может не совпасть с каталогом!`);
+      }
     }
 
     if (!externalId) return null;
