@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} /> };
       case 'processing': return { label: 'В работе', color: 'bg-orange-100 text-orange-700', icon: <Package size={14} /> };
-      case 'ready': return { label: 'К выдаче', color: 'bg-purple-100 text-purple-700', icon: <Inbox size={14} /> };
+      case 'ready': return { label: 'Готов к выдаче', color: 'bg-purple-100 text-purple-700', icon: <Inbox size={14} /> };
       case 'done': return { label: 'Выдан', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={14} /> };
       case 'cancelled': return { label: 'Отменен', color: 'bg-red-100 text-red-700', icon: <XCircle size={14} /> };
       default: return { label: status, color: 'bg-gray-100', icon: null };
@@ -199,7 +199,7 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center gap-8">
                       <div className="text-right">
                         <div className="text-2xl font-black text-gray-900">{order.total_price} ₽</div>
-                        <div className="text-[10px] text-gray-400 font-black uppercase">{new Date(order.created_at).toLocaleTimeString('ru-RU')}</div>
+                        <div className="text-[10px] text-gray-400 font-black uppercase tracking-tight">{new Date(order.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                       </div>
                       <div className={`p-2 rounded-full transition-colors ${isExpanded ? 'bg-blue-600 text-white' : 'bg-gray-50 text-gray-400'}`}>
                         {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -225,7 +225,7 @@ export default function AdminOrdersPage() {
                           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Статус</h4>
                           <div className="flex flex-wrap gap-2">
                             <button onClick={() => updateOrderStatus(order.id, 'processing')} className="bg-orange-500 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-orange-600 active:scale-95 transition-all">В работу</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'ready')} className="bg-purple-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-purple-700 active:scale-95 transition-all">К выдаче</button>
+                            <button onClick={() => updateOrderStatus(order.id, 'ready')} className="bg-purple-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-purple-700 active:scale-95 transition-all">Готов к выдаче</button>
                             <button onClick={() => updateOrderStatus(order.id, 'done')} className="bg-green-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-700 active:scale-95 transition-all">Выдан</button>
                             <button onClick={() => updateOrderStatus(order.id, 'cancelled')} className="bg-red-500 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-600 active:scale-95 transition-all">Отмена</button>
                           </div>

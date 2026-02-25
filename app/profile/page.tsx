@@ -259,7 +259,7 @@ function ProfileContent() {
     switch (status) {
       case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} /> };
       case 'processing': return { label: 'В работе', color: 'bg-orange-100 text-orange-700', icon: <Package size={14} /> };
-      case 'ready': return { label: 'К выдаче', color: 'bg-purple-100 text-purple-700', icon: <ShoppingBag size={14} /> };
+      case 'ready': return { label: 'Готов к выдаче', color: 'bg-purple-100 text-purple-700', icon: <ShoppingBag size={14} /> };
       case 'done': return { label: 'Выдан', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={14} /> };
       case 'cancelled': return { label: 'Отменен', color: 'bg-red-100 text-red-700', icon: <XCircle size={14} /> };
       default: return { label: status, color: 'bg-gray-100 text-gray-600', icon: null };
@@ -365,7 +365,7 @@ function ProfileContent() {
                         >
                           <div className="space-y-1">
                             <div className="text-xl font-black text-gray-900 group-hover:text-blue-600 transition-colors tracking-tighter">Заказ #{order.id}</div>
-                            <div className="text-xs text-gray-400 font-bold">{new Date(order.created_at).toLocaleDateString('ru-RU')}</div>
+                            <div className="text-xs text-gray-400 font-bold">{new Date(order.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                             <div className={`mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${style.color}`}>
                               {style.icon} {style.label}
                             </div>
