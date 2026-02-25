@@ -130,7 +130,7 @@ function HeaderContent() {
                     <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-600 border border-white"></span>
                   )}
                 </div>
-                <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
               </Link>
             ) : (
               <Link
@@ -138,7 +138,7 @@ function HeaderContent() {
                 className="flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
               >
                 <User className="h-6 w-6 group-hover:scale-105 transition-transform" />
-                <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Войти</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Войти</span>
               </Link>
             )}
 
@@ -149,7 +149,7 @@ function HeaderContent() {
               title="Избранное"
             >
               <Heart className="h-6 w-6 group-hover:scale-105 transition-transform" />
-              <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Избранное</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Избранное</span>
             </Link>
 
             {/* --- ИКОНКА КОРЗИНЫ --- */}
@@ -165,7 +165,7 @@ function HeaderContent() {
                   </span>
                 )}
               </div>
-              <span className="hidden sm:block text-[10px] font-bold uppercase tracking-wider mt-0.5">Корзина</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Корзина</span>
             </Link>
 
             {/* Мобильный бургер */}
@@ -216,30 +216,6 @@ function HeaderContent() {
                 {cat.name}
               </Link>
             ))}
-          </div>
-
-          <div className="border-t border-gray-100 pt-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Аккаунт</p>
-            {user ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-3 p-3 bg-blue-50 text-blue-700 rounded-xl font-bold mb-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <User size={20} />
-                  Личный кабинет
-                </Link>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="flex items-center justify-center p-3 bg-black text-white rounded-xl font-bold"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Войти / Регистрация
-              </Link>
-            )}
           </div>
         </div>
       )}
