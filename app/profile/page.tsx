@@ -241,6 +241,7 @@ function ProfileContent() {
     switch (status) {
       case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} /> };
       case 'processing': return { label: 'В работе', color: 'bg-orange-100 text-orange-700', icon: <Package size={14} /> };
+      case 'ready': return { label: 'К выдаче', color: 'bg-purple-100 text-purple-700', icon: <ShoppingBag size={14} /> };
       case 'done': return { label: 'Выдан', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={14} /> };
       case 'cancelled': return { label: 'Отменен', color: 'bg-red-100 text-red-700', icon: <XCircle size={14} /> };
       default: return { label: status, color: 'bg-gray-100 text-gray-600', icon: null };

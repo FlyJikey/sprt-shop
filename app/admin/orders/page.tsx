@@ -2,16 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase-client';
-import { 
-  Package, Clock, CheckCircle2, XCircle, 
-  ChevronDown, ChevronUp, Archive, Inbox, 
-  MessageCircle, Send, AlertTriangle, RefreshCcw 
+import {
+  Package, Clock, CheckCircle2, XCircle,
+  ChevronDown, ChevronUp, Archive, Inbox,
+  MessageCircle, Send, AlertTriangle, RefreshCcw
 } from 'lucide-react';
-import { 
-  updateOrderStatus, 
-  getOrderItems, 
-  getOrderMessages, 
-  sendOrderMessage 
+import {
+  updateOrderStatus,
+  getOrderItems,
+  getOrderMessages,
+  sendOrderMessage
 } from '@/app/actions';
 
 export default function AdminOrdersPage() {
@@ -23,7 +23,7 @@ export default function AdminOrdersPage() {
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState('CONNECTING');
-  
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   // Используем ref для текущей вкладки, чтобы Realtime видел актуальное состояние без перезапуска эффекта
   const activeTabRef = useRef(activeTab);
@@ -35,7 +35,7 @@ export default function AdminOrdersPage() {
 
   const fetchOrders = async () => {
     setLoading(true);
-    const statuses = activeTab === 'active' ? ['new', 'processing'] : ['done', 'cancelled'];
+    const statuses = activeTab === 'active' ? ['new', 'processing', 'ready'] : ['done', 'cancelled'];
     const { data } = await supabase
       .from('orders')
       .select('*')
@@ -56,15 +56,15 @@ export default function AdminOrdersPage() {
         { event: '*', schema: 'public', table: 'orders' },
         (payload) => {
           console.log('📡 СОБЫТИЕ ТАБЛИЦЫ ORDERS:', payload);
-          
-          const currentStatuses = activeTabRef.current === 'active' ? ['new', 'processing'] : ['done', 'cancelled'];
+
+          const currentStatuses = activeTabRef.current === 'active' ? ['new', 'processing', 'ready'] : ['done', 'cancelled'];
 
           if (payload.eventType === 'INSERT') {
             const newOrder = payload.new;
             if (currentStatuses.includes(newOrder.status)) {
               setOrders(prev => [newOrder, ...prev]);
             }
-          } 
+          }
           else if (payload.eventType === 'UPDATE') {
             const updated = payload.new;
             setOrders(prev => {
@@ -110,7 +110,7 @@ export default function AdminOrdersPage() {
     } else {
       setExpandedOrder(orderId);
       const [orderItems, orderMsgs] = await Promise.all([
-        getOrderItems(orderId), 
+        getOrderItems(orderId),
         getOrderMessages(orderId)
       ]);
       setItems(orderItems);
@@ -127,10 +127,11 @@ export default function AdminOrdersPage() {
 
   const getStatusInfo = (status: string) => {
     switch (status) {
-      case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14}/> };
-      case 'processing': return { label: 'В работе', color: 'bg-orange-100 text-orange-700', icon: <Package size={14}/> };
-      case 'done': return { label: 'Выдан', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={14}/> };
-      case 'cancelled': return { label: 'Отменен', color: 'bg-red-100 text-red-700', icon: <XCircle size={14}/> };
+      case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} /> };
+      case 'processing': return { label: 'В работе', color: 'bg-orange-100 text-orange-700', icon: <Package size={14} /> };
+      case 'ready': return { label: 'К выдаче', color: 'bg-purple-100 text-purple-700', icon: <Inbox size={14} /> };
+      case 'done': return { label: 'Выдан', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={14} /> };
+      case 'cancelled': return { label: 'Отменен', color: 'bg-red-100 text-red-700', icon: <XCircle size={14} /> };
       default: return { label: status, color: 'bg-gray-100', icon: null };
     }
   };
@@ -154,13 +155,13 @@ export default function AdminOrdersPage() {
               <RefreshCcw size={20} className={loading ? 'animate-spin' : ''} />
             </button>
             <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-gray-100">
-              <button 
+              <button
                 onClick={() => setActiveTab('active')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'active' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'text-gray-400 hover:text-gray-900'}`}
               >
                 <Inbox size={18} /> Активные
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('archive')}
                 className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'archive' ? 'bg-gray-900 text-white shadow-lg shadow-gray-200' : 'text-gray-400 hover:text-gray-900'}`}
               >
@@ -174,7 +175,7 @@ export default function AdminOrdersPage() {
           <div className="text-center py-20 text-gray-300 font-black uppercase tracking-widest animate-pulse">Загрузка...</div>
         ) : orders.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100">
-             <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">Пусто</p>
+            <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">Пусто</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -224,6 +225,7 @@ export default function AdminOrdersPage() {
                           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Статус</h4>
                           <div className="flex flex-wrap gap-2">
                             <button onClick={() => updateOrderStatus(order.id, 'processing')} className="bg-orange-500 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-orange-600 active:scale-95 transition-all">В работу</button>
+                            <button onClick={() => updateOrderStatus(order.id, 'ready')} className="bg-purple-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-purple-700 active:scale-95 transition-all">К выдаче</button>
                             <button onClick={() => updateOrderStatus(order.id, 'done')} className="bg-green-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-700 active:scale-95 transition-all">Выдан</button>
                             <button onClick={() => updateOrderStatus(order.id, 'cancelled')} className="bg-red-500 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-600 active:scale-95 transition-all">Отмена</button>
                           </div>
@@ -245,12 +247,12 @@ export default function AdminOrdersPage() {
                           <div ref={chatEndRef} />
                         </div>
                         <div className="flex gap-2">
-                          <input 
-                            value={replyText} 
-                            onChange={(e) => setReplyText(e.target.value)} 
+                          <input
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAdminReply(order.id)}
-                            className="flex-1 p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all" 
-                            placeholder="Ответить..." 
+                            className="flex-1 p-4 bg-white border border-gray-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                            placeholder="Ответить..."
                           />
                           <button onClick={() => handleAdminReply(order.id)} className="bg-gray-900 text-white p-4 rounded-2xl hover:bg-black transition-all active:scale-90 shadow-xl"><Send size={20} /></button>
                         </div>

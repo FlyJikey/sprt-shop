@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { ShoppingCart, Search, Menu, X, User, Heart, Bell, LayoutGrid } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, User, Heart, Bell, LayoutGrid, ShoppingBag } from 'lucide-react';
 import { useCart } from '@/app/store';
 import { supabase } from '@/lib/supabase-client';
 import CategoryMenu from './CategoryMenu';
@@ -19,8 +19,10 @@ function HeaderContent() {
 
   // Состояние пользователя
   const [user, setUser] = useState<any>(null);
-  const [hasNotification, setHasNotification] = useState(false);
-  const [showToast, setShowToast] = useState(false);
+  const [hasWaitlistNotification, setHasWaitlistNotification] = useState(false);
+  const [hasReadyOrder, setHasReadyOrder] = useState(false);
+  const [showWaitlistToast, setShowWaitlistToast] = useState(false);
+  const [showReadyToast, setShowReadyToast] = useState(false);
 
   useEffect(() => {
     // 1. Загружаем категории (для мобильного меню)
@@ -34,19 +36,32 @@ function HeaderContent() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       setUser(user);
       if (user) {
-        const { data } = await supabase
-          .from('waitlist')
-          .select('id, products(stock)')
-          .eq('user_id', user.id);
+        const [waitlistRes, ordersRes] = await Promise.all([
+          supabase.from('waitlist').select('id, products(stock)').eq('user_id', user.id),
+          supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'ready').eq('user_id', user.id)
+        ]);
 
-        if (data) {
-          const available = data.some((item: any) => (item.products?.stock || 0) > 0);
-          setHasNotification(available);
+        // Лист ожидания
+        if (waitlistRes.data) {
+          const available = waitlistRes.data.some((item: any) => (item.products?.stock || 0) > 0);
+          setHasWaitlistNotification(available);
           if (available && pathname === '/') {
             const notified = sessionStorage.getItem('waitlist_notified');
             if (!notified) {
               sessionStorage.setItem('waitlist_notified', 'true');
-              setTimeout(() => setShowToast(true), 1500);
+              setTimeout(() => setShowWaitlistToast(true), 1500);
+            }
+          }
+        }
+
+        // Готовые заказы
+        if (ordersRes.count && ordersRes.count > 0) {
+          setHasReadyOrder(true);
+          if (pathname === '/') {
+            const readyNotified = sessionStorage.getItem('ready_order_notified');
+            if (!readyNotified) {
+              sessionStorage.setItem('ready_order_notified', 'true');
+              setTimeout(() => setShowReadyToast(true), 2000); // Чуть позже, чтобы не перекрывали друг друга
             }
           }
         }
@@ -126,9 +141,11 @@ function HeaderContent() {
               >
                 <div className="relative">
                   <User className="h-6 w-6 group-hover:scale-105 transition-transform" />
-                  {hasNotification && (
+                  {hasReadyOrder ? (
+                    <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-white animate-pulse"></span>
+                  ) : hasWaitlistNotification ? (
                     <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-600 border border-white"></span>
-                  )}
+                  ) : null}
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
               </Link>
@@ -221,7 +238,7 @@ function HeaderContent() {
       )}
 
       {/* Toast Уведомление о поступлении товара */}
-      {showToast && (
+      {showWaitlistToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-white border border-gray-100 shadow-2xl rounded-3xl p-4 flex gap-4 items-start max-w-sm animate-in slide-in-from-bottom-5">
           <div className="bg-red-50 text-red-600 p-3 rounded-2xl">
             <Bell size={24} />
@@ -230,10 +247,31 @@ function HeaderContent() {
             <h4 className="font-black text-gray-900 text-sm mb-1 uppercase tracking-tighter">Товар поступил!</h4>
             <p className="text-xs text-gray-500 mb-4 leading-relaxed">Товар из вашего <span className="font-bold text-gray-700">листа ожидания</span> снова в наличии.</p>
             <div className="flex gap-2">
-              <Link href="/profile?tab=waitlist" onClick={() => setShowToast(false)} className="bg-spartak text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-red-700 active:scale-95 transition-all shadow-md">
+              <Link href="/profile?tab=waitlist" onClick={() => setShowWaitlistToast(false)} className="bg-spartak text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-red-700 active:scale-95 transition-all shadow-md">
                 Перейти
               </Link>
-              <button onClick={() => setShowToast(false)} className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-3 hover:text-gray-900 transition-colors">
+              <button onClick={() => setShowWaitlistToast(false)} className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-3 hover:text-gray-900 transition-colors">
+                Скрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Уведомление о готовом заказе */}
+      {showReadyToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white border border-gray-100 shadow-2xl rounded-3xl p-4 flex gap-4 items-start max-w-sm animate-in slide-in-from-bottom-5">
+          <div className="bg-green-50 text-green-600 p-3 rounded-2xl">
+            <ShoppingBag size={24} />
+          </div>
+          <div className="flex-1 mt-1">
+            <h4 className="font-black text-gray-900 text-sm mb-1 uppercase tracking-tighter">Заказ собран!</h4>
+            <p className="text-xs text-gray-500 mb-4 leading-relaxed">Ваш заказ готов к выдаче, ждем вас.</p>
+            <div className="flex gap-2">
+              <Link href="/profile?tab=orders" onClick={() => setShowReadyToast(false)} className="bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-green-700 active:scale-95 transition-all shadow-md">
+                К заказам
+              </Link>
+              <button onClick={() => setShowReadyToast(false)} className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-3 hover:text-gray-900 transition-colors">
                 Скрыть
               </button>
             </div>
