@@ -109,6 +109,13 @@ export async function POST(req: NextRequest) {
         return new NextResponse('success', { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
       }
 
+      // ВРЕМЕННЫЙ ЛОГ ДЛЯ ОТЛАДКИ СТРУКТУРЫ OFFERS.XML
+      if (filename.includes('offers')) {
+        console.log(`\n[1C DEBUG XML] ===== НАЧАЛО ФАЙЛА ${filename} =====`);
+        console.log(xmlData.substring(0, 1500)); // Выводим первые 1500 символов, чтобы увидеть структуру
+        console.log(`[1C DEBUG XML] ===== КОНЕЦ ФРАГМЕНТА ${filename} =====\n`);
+      }
+
       const result = await parseStringPromise(xmlData, {
         explicitArray: false,
         ignoreAttrs: true
