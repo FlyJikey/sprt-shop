@@ -102,7 +102,7 @@ function HeaderContent() {
           <div className="flex-shrink-0 flex items-center gap-12 lg:gap-16">
             <Link
               href="/"
-              className="text-3xl font-serif font-black text-spartak tracking-widest uppercase hover:opacity-80 transition"
+              className="text-2xl sm:text-3xl font-serif font-black text-spartak tracking-widest uppercase hover:opacity-80 transition"
               style={{ color: '#9C2730' }}
             >
               СПАРТАК
@@ -130,7 +130,7 @@ function HeaderContent() {
           </div>
 
           {/* Иконки: Профиль, Избранное, Корзина */}
-          <div className="flex items-center gap-4 sm:gap-6 ml-auto">
+          <div className="flex items-center gap-3 sm:gap-6 ml-auto">
 
             {/* --- ИКОНКА ПРОФИЛЯ --- */}
             {user ? (
@@ -147,7 +147,7 @@ function HeaderContent() {
                     <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-red-600 border border-white"></span>
                   ) : null}
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Профиль</span>
+                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 whitespace-nowrap">Профиль</span>
               </Link>
             ) : (
               <Link
@@ -155,7 +155,7 @@ function HeaderContent() {
                 className="flex flex-col items-center gap-1 text-gray-600 hover:text-red-600 transition-all group"
               >
                 <User className="h-6 w-6 group-hover:scale-105 transition-transform" />
-                <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Войти</span>
+                <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 whitespace-nowrap">Войти</span>
               </Link>
             )}
 
@@ -166,7 +166,7 @@ function HeaderContent() {
               title="Избранное"
             >
               <Heart className="h-6 w-6 group-hover:scale-105 transition-transform" />
-              <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Избранное</span>
+              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 whitespace-nowrap">Избранное</span>
             </Link>
 
             {/* --- ИКОНКА КОРЗИНЫ --- */}
@@ -182,7 +182,7 @@ function HeaderContent() {
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider mt-0.5">Корзина</span>
+              <span className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 whitespace-nowrap">Корзина</span>
             </Link>
 
             {/* Мобильный бургер */}
