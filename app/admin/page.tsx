@@ -3,13 +3,14 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
-import { 
-  Users, 
-  ShoppingCart, 
-  RussianRuble, 
+import {
+  Users,
+  ShoppingCart,
+  RussianRuble,
   TrendingUp,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Bell
 } from 'lucide-react';
 import LowStockTrigger from '@/components/admin/LowStockTrigger';
 
@@ -22,7 +23,7 @@ export default async function AdminDashboard() {
     {
       cookies: {
         getAll() { return cookieStore.getAll() },
-        setAll(cookiesToSet) {}
+        setAll(cookiesToSet) { }
       },
     }
   );
@@ -61,6 +62,11 @@ export default async function AdminDashboard() {
     return <div className="p-8 text-red-500">Ошибка загрузки статистики: {error.message}</div>;
   }
 
+  // 5. Получаем общее количество записей в листе ожидания
+  const { count: waitlistCount } = await supabaseAdmin
+    .from('waitlist')
+    .select('*', { count: 'exact', head: true });
+
   const totalDeals = stats.completed_orders || 1;
   const averageCheck = stats.revenue / totalDeals;
 
@@ -80,9 +86,9 @@ export default async function AdminDashboard() {
           Всего товаров: {stats.total_products}
         </span>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        
+
         {/* 1. ВЫРУЧКА */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-start mb-4">
@@ -116,7 +122,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* 3. АКТИВНЫЕ ЗАКАЗЫ (ССЫЛКА) */}
-        <Link 
+        <Link
           href="/admin/orders"
           className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-blue-200 transition-all group relative block"
         >
@@ -134,11 +140,38 @@ export default async function AdminDashboard() {
             </div>
           </div>
           {stats.active_orders > 0 ? (
-             <div className="text-xs text-orange-600 font-bold bg-orange-50 inline-block px-2 py-1 rounded-md">
-               Требуют обработки
-             </div>
+            <div className="text-xs text-orange-600 font-bold bg-orange-50 inline-block px-2 py-1 rounded-md">
+              Требуют обработки
+            </div>
           ) : (
-             <div className="text-xs text-gray-400 font-bold">Очередь пуста</div>
+            <div className="text-xs text-gray-400 font-bold">Очередь пуста</div>
+          )}
+        </Link>
+
+        {/* НОВЫЙ БЛОК: ЛИСТ ОЖИДАНИЯ (ССЫЛКА) */}
+        <Link
+          href="/admin/waitlist"
+          className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 cursor-pointer hover:shadow-md hover:border-pink-200 transition-all group relative block"
+        >
+          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+            <ArrowRight size={16} className="text-pink-500" />
+          </div>
+
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider group-hover:text-pink-600 transition-colors">Лист ожидания</p>
+              <h3 className="text-3xl font-black text-gray-900 mt-2">{waitlistCount || 0}</h3>
+            </div>
+            <div className="p-3 bg-pink-50 rounded-xl group-hover:bg-pink-100 transition-colors">
+              <Bell className="w-6 h-6 text-pink-500" />
+            </div>
+          </div>
+          {(waitlistCount || 0) > 0 ? (
+            <div className="text-xs text-pink-600 font-bold bg-pink-50 inline-block px-2 py-1 rounded-md">
+              Ждут поступления
+            </div>
+          ) : (
+            <div className="text-xs text-gray-400 font-bold">Заявок нет</div>
           )}
         </Link>
 

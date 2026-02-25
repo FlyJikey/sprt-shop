@@ -9,7 +9,8 @@ import {
   Tag,
   Package,
   UploadCloud,
-  Palette
+  Palette,
+  Bell
 } from "lucide-react";
 import { redirect } from 'next/navigation';
 import LogoutButton from '@/components/admin/LogoutButton';
@@ -57,6 +58,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: "/admin/users", icon: Users, label: "Пользователи", roles: ['admin'] },
     { href: "/admin/ai", icon: Brain, label: "AI Менеджер", roles: ['admin'] },
     { href: "/admin/import", icon: UploadCloud, label: "Импорт", roles: ['admin'] },
+    { href: "/admin/waitlist", icon: Bell, label: "Лист ожидания", roles: ['admin'] },
     { href: "/admin/design", icon: Palette, label: "Дизайн", roles: ['admin'] },
   ];
 
