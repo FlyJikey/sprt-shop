@@ -129,7 +129,7 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} /> };
       case 'processing': return { label: 'В работе', color: 'bg-orange-100 text-orange-700', icon: <Package size={14} /> };
-      case 'ready': return { label: 'Готов к выдаче', color: 'bg-purple-100 text-purple-700', icon: <Inbox size={14} /> };
+      case 'ready': return { label: 'Можно забирать', color: 'bg-purple-100 text-purple-700', icon: <Inbox size={14} /> };
       case 'done': return { label: 'Выдан', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 size={14} /> };
       case 'cancelled': return { label: 'Отменен', color: 'bg-red-100 text-red-700', icon: <XCircle size={14} /> };
       default: return { label: status, color: 'bg-gray-100', icon: null };
@@ -225,9 +225,54 @@ export default function AdminOrdersPage() {
                           <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Статус</h4>
                           <div className="flex flex-wrap gap-2">
                             <button onClick={() => updateOrderStatus(order.id, 'processing')} className="bg-orange-500 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-orange-600 active:scale-95 transition-all">В работу</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'ready')} className="bg-purple-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-purple-700 active:scale-95 transition-all">Готов к выдаче</button>
+                            <button onClick={() => updateOrderStatus(order.id, 'ready')} className="bg-purple-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-purple-700 active:scale-95 transition-all">Можно забирать</button>
                             <button onClick={() => updateOrderStatus(order.id, 'done')} className="bg-green-600 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-green-700 active:scale-95 transition-all">Выдан</button>
                             <button onClick={() => updateOrderStatus(order.id, 'cancelled')} className="bg-red-500 text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase hover:bg-red-600 active:scale-95 transition-all">Отмена</button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">История заказа</h4>
+                          <div className="bg-white px-5 py-6 rounded-3xl border border-gray-100 flex flex-col gap-5 relative overflow-hidden">
+                            {/* Vertical Line Container */}
+                            <div className="absolute top-8 bottom-8 left-[31px] w-0.5 bg-gray-100 rounded-full" />
+
+                            {/* Stage: Received */}
+                            <div className="flex items-start gap-3 relative z-10">
+                              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5 ring-4 ring-white">
+                                <Clock size={12} />
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-gray-900 leading-none">Поступил</div>
+                                <div className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-tight">{new Date(order.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                              </div>
+                            </div>
+
+                            {/* Stage: Ready */}
+                            {order.ready_at && (
+                              <div className="flex items-start gap-3 relative z-10">
+                                <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0 mt-0.5 ring-4 ring-white">
+                                  <Inbox size={12} />
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold text-gray-900 leading-none">Можно забирать</div>
+                                  <div className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-tight">{new Date(order.ready_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Stage: Done */}
+                            {order.done_at && (
+                              <div className="flex items-start gap-3 relative z-10">
+                                <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-0.5 ring-4 ring-white">
+                                  <CheckCircle2 size={12} />
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold text-gray-900 leading-none">Выдан</div>
+                                  <div className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-tight">{new Date(order.done_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

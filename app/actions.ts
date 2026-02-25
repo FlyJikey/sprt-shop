@@ -217,7 +217,11 @@ export async function sendOrderMessage(orderId: number, text: string, isAdmin: b
 export async function updateOrderStatus(orderId: number, newStatus: string) {
   if (!(await verifyAdminSession())) return { success: false, error: 'Unauthorized' };
 
-  await supabaseAdmin.from('orders').update({ status: newStatus }).eq('id', orderId);
+  const updateData: any = { status: newStatus };
+  if (newStatus === 'ready') updateData.ready_at = new Date().toISOString();
+  if (newStatus === 'done') updateData.done_at = new Date().toISOString();
+
+  await supabaseAdmin.from('orders').update(updateData).eq('id', orderId);
   const { data: order } = await supabaseAdmin.from('orders').select('user_id').eq('id', orderId).single();
   if (order?.user_id) {
     const email = await getOrFixUserEmail(order.user_id);
