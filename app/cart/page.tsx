@@ -5,16 +5,16 @@ import { useCart } from '@/app/store';
 import Link from 'next/link';
 import { Trash2, Minus, Plus, X, CheckCircle, UserCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase-client'; // Для проверки сессии
 import { submitOrder } from '@/app/actions';
 import Image from 'next/image';
 
 export default function CartPage() {
+  const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart } = useCart();
   const [mounted, setMounted] = useState(false);
 
-  // Состояния для оформления
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderCompleteId, setOrderCompleteId] = useState<number | null>(null);
 
@@ -50,21 +50,26 @@ export default function CartPage() {
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleCheckout = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleCheckout = async () => {
+    if (!userProfile) {
+      router.push('/login?redirect=/cart');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData();
+    formData.append('name', userProfile.full_name || 'Не указано');
+    formData.append('phone', userProfile.phone || 'Не указан');
+    formData.append('comment', ''); // Можно добавить поле комментария позже, если нужно
 
-    // Передаем FormData, товары, итог и ID пользователя (если есть)
-    const result = await submitOrder(formData, items, total, userProfile?.id);
+    const result = await submitOrder(formData, items, total, userProfile.id);
 
     setIsSubmitting(false);
 
     if (result.success) {
       clearCart();
       setOrderCompleteId(result.orderId);
-      setIsCheckoutOpen(false);
     } else {
       alert('Ошибка: ' + result.error);
     }
@@ -138,70 +143,17 @@ export default function CartPage() {
               <div className="flex items-center gap-8">
                 <div className="text-2xl font-black text-gray-900">Итого: {total} ₽</div>
                 <button
-                  onClick={() => setIsCheckoutOpen(true)}
-                  className="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100"
+                  onClick={handleCheckout}
+                  disabled={isSubmitting}
+                  className="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 disabled:opacity-50"
                 >
-                  Оформить заказ
+                  {isSubmitting ? 'Отправка...' : 'Оформить заказ'}
                 </button>
               </div>
             </div>
           </div>
         )}
       </div>
-
-      {/* МОДАЛЬНОЕ ОКНО ОФОРМЛЕНИЯ */}
-      {isCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div className="p-6 flex justify-between items-center border-b">
-              <h2 className="text-xl font-bold">Данные для заказа</h2>
-              <button onClick={() => setIsCheckoutOpen(false)}><X /></button>
-            </div>
-
-            <form onSubmit={handleCheckout} className="p-6 space-y-4">
-              {userProfile && (
-                <div className="bg-green-50 p-3 rounded-lg flex items-center gap-2 text-green-700 text-sm mb-2">
-                  <UserCheck size={18} />
-                  <span>Вы вошли как <b>{userProfile.full_name}</b>. Данные подставлены автоматически.</span>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Имя получателя</label>
-                <input
-                  name="name" required
-                  defaultValue={userProfile?.full_name || ''}
-                  className="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Телефон</label>
-                <input
-                  name="phone" type="tel" required
-                  defaultValue={userProfile?.phone || ''}
-                  className="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Комментарий</label>
-                <textarea
-                  name="comment" rows={2}
-                  className="w-full p-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
-              </div>
-
-              <button
-                type="submit" disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                {isSubmitting ? 'Отправка...' : `Подтвердить заказ на ${total} ₽`}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
