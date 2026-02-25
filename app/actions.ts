@@ -390,6 +390,7 @@ export async function generateSearchEmbedding(text: string) {
     env.allowRemoteModels = true;
     env.backends.onnx.wasm.numThreads = 1;
     env.backends.onnx.wasm.simd = false;
+    env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
     env.cacheDir = './.cache';
 
     if (!extractor) {

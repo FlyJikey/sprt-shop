@@ -11,6 +11,7 @@ env.allowRemoteModels = true;
 // Принудительно используем WASM бэкенд для Vercel вместо Node.js C++
 env.backends.onnx.wasm.numThreads = 1;
 env.backends.onnx.wasm.simd = false;
+env.backends.onnx.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.14.0/dist/';
 // Указываем путь к кэшу
 env.cacheDir = './.cache';
 
