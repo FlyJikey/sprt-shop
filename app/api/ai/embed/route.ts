@@ -4,7 +4,7 @@ import { pipeline, env } from '@xenova/transformers';
 
 // --- КОНФИГУРАЦИЯ ОКРУЖЕНИЯ ИИ ---
 // Отключаем поиск токенов в системных переменных, чтобы избежать ошибок "Unauthorized"
-env.token = null; 
+env.token = null;
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
 // Указываем путь к кэшу, чтобы модель не скачивалась каждый раз при перезапуске (опционально)
@@ -31,17 +31,17 @@ export async function POST(req: Request) {
       console.log("💿 Загрузка ИИ-модели (MiniLM-L6-v2)...");
       extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
         // @ts-ignore
-        auth_token: null 
+        auth_token: null
       });
     }
 
     // 2. Генерация вектора
     // Мы нормализуем вектор сразу, чтобы поиск через cosine similarity (косинусное сходство) был точнее
     console.log(`🧠 Обработка текста для товара ID: ${productId}`);
-    
-    const output = await extractor(text, { 
-      pooling: 'mean', 
-      normalize: true 
+
+    const output = await extractor(text, {
+      pooling: 'mean',
+      normalize: true
     });
 
     // Преобразуем объект тензора в обычный массив чисел
@@ -63,16 +63,38 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: `Ошибка БД: ${dbError.message}` }, { status: 500 });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    await supabase.from('ai_history').insert({
+      product_id: productId,
+      action_type: 'embed',
+      ai_result: `Vector size: ${vector.length}`,
+      status: 'success'
+    });
+
+    return NextResponse.json({
+      success: true,
       message: 'Вектор успешно сгенерирован и сохранен',
-      dimensions: vector.length 
+      dimensions: vector.length
     });
 
   } catch (error: any) {
     console.error("Критическая ошибка Embed роута:", error.message);
-    return NextResponse.json({ 
-      error: error.message || 'Внутренняя ошибка сервера' 
+
+    // Пытаемся сохранить ошибку в историю
+    try {
+      const clonedReq = req.clone();
+      const pid = await clonedReq.json().then(b => b.productId).catch(() => null);
+      if (pid) {
+        await supabase.from('ai_history').insert({
+          product_id: pid,
+          action_type: 'embed',
+          ai_result: error.message || 'Unknown error',
+          status: 'error'
+        });
+      }
+    } catch (e) { /* Игнорируем ошибки логирования */ }
+
+    return NextResponse.json({
+      error: error.message || 'Внутренняя ошибка сервера'
     }, { status: 500 });
   }
 }

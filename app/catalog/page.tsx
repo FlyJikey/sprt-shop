@@ -5,6 +5,7 @@ import CatalogSort from '@/components/CatalogSort';
 import CatalogGrid from '@/components/CatalogGrid';
 import ScrollButton from '@/components/ScrollButton';
 import { ChevronRight, ChevronDown, Folder } from 'lucide-react';
+import { generateSearchEmbedding } from '@/app/actions';
 
 export const revalidate = 0;
 
@@ -34,30 +35,72 @@ export default async function CatalogPage({
     .from('categories')
     .select('*')
     .order('name'); // Сортируем по алфавиту для красоты
-  
+
   const categories = (categoriesData || []) as Category[];
 
   // 2. ЗАПРОС ТОВАРОВ
-  let dbQuery = supabase.from('products').select('*', { count: 'exact' });
+  let products: any[] = [];
+  let count: number | null = 0;
 
-  if (query) dbQuery = dbQuery.ilike('name', `%${query}%`);
-  
-  // Фильтр по пути: ищем товары, у которых категория НАЧИНАЕТСЯ с выбранного пути
-  // Например, если выбрали "elektronika", найдутся и "elektronika/kabeli", и "elektronika/tv"
-  if (categoryPath) {
-    dbQuery = dbQuery.ilike('category', `${categoryPath}%`);
+  if (query) {
+    // === СЕМАНТИЧЕСКИЙ (УМНЫЙ) ПОИСК ===
+    const embedRes = await generateSearchEmbedding(query);
+
+    if (embedRes.success && embedRes.vector) {
+      // Ищем через RPC функцию по вектору
+      const { data: semanticData } = await supabase.rpc('search_products_semantic', {
+        query_embedding: embedRes.vector,
+        match_threshold: 0.2, // Мягкий порог для поиска
+        match_count: itemsPerPage,
+        category_filter: categoryPath || null
+      });
+
+      if (semanticData && semanticData.length > 0) {
+        products = semanticData;
+        count = semanticData.length;
+
+        // Сортировка семантических результатов происходит внутри SQL (по релевантности).
+        // Но если юзер выбрал другой сорт - применим локально
+        if (sort === 'price_asc') products.sort((a, b) => a.price - b.price);
+        if (sort === 'price_desc') products.sort((a, b) => b.price - a.price);
+        if (sort === 'name_asc') products.sort((a, b) => a.name.localeCompare(b.name));
+      } else {
+        // Фолбэк на обычный поиск, если ИИ ничего не нашел
+        let dbQuery = supabase.from('products').select('*', { count: 'exact' }).ilike('name', `%${query}%`);
+        if (categoryPath) dbQuery = dbQuery.ilike('category', `${categoryPath}%`);
+        const { data, count: fallbackCount } = await dbQuery.limit(itemsPerPage);
+        products = data || [];
+        count = fallbackCount;
+      }
+    } else {
+      // Фолбэк на обычный поиск при ошибке генерации вектора
+      let dbQuery = supabase.from('products').select('*', { count: 'exact' }).ilike('name', `%${query}%`);
+      if (categoryPath) dbQuery = dbQuery.ilike('category', `${categoryPath}%`);
+      const { data, count: fallbackCount } = await dbQuery.limit(itemsPerPage);
+      products = data || [];
+      count = fallbackCount;
+    }
+
+  } else {
+    // === ОБЫЧНЫЙ КАТАЛОГ (Без поиска) ===
+    let dbQuery = supabase.from('products').select('*', { count: 'exact' });
+
+    if (categoryPath) {
+      dbQuery = dbQuery.ilike('category', `${categoryPath}%`);
+    }
+
+    switch (sort) {
+      case 'in_stock': dbQuery = dbQuery.order('stock', { ascending: false }); break;
+      case 'price_asc': dbQuery = dbQuery.order('price', { ascending: true }); break;
+      case 'price_desc': dbQuery = dbQuery.order('price', { ascending: false }); break;
+      case 'name_asc': dbQuery = dbQuery.order('name', { ascending: true }); break;
+      case 'newest': default: dbQuery = dbQuery.order('created_at', { ascending: false }); break;
+    }
+
+    const res = await dbQuery.limit(itemsPerPage);
+    products = res.data || [];
+    count = res.count;
   }
-
-  // СОРТИРОВКА
-  switch (sort) {
-    case 'in_stock': dbQuery = dbQuery.order('stock', { ascending: false }); break;
-    case 'price_asc': dbQuery = dbQuery.order('price', { ascending: true }); break;
-    case 'price_desc': dbQuery = dbQuery.order('price', { ascending: false }); break;
-    case 'name_asc': dbQuery = dbQuery.order('name', { ascending: true }); break;
-    case 'newest': default: dbQuery = dbQuery.order('created_at', { ascending: false }); break;
-  }
-
-  const { data: products, count } = await dbQuery.limit(itemsPerPage);
 
   // 3. ПОДГОТОВКА ДЕРЕВА ДЛЯ САЙДБАРА
   // Группируем категории по родителям для рекурсивного вывода
@@ -96,25 +139,24 @@ export default async function CatalogPage({
 
     return (
       <div key={cat.id} className="ml-2">
-        <Link 
+        <Link
           href={`/catalog?category=${encodeURIComponent(cat.path)}`}
-          className={`flex items-center justify-between py-1.5 px-2 rounded-lg text-sm transition-colors ${
-            isActive 
-              ? 'bg-blue-600 text-white font-bold shadow-md' 
-              : isChildActive 
+          className={`flex items-center justify-between py-1.5 px-2 rounded-lg text-sm transition-colors ${isActive
+              ? 'bg-blue-600 text-white font-bold shadow-md'
+              : isChildActive
                 ? 'text-blue-700 font-medium bg-blue-50'
                 : 'text-gray-600 hover:bg-gray-100'
-          }`}
+            }`}
         >
           <span>{cat.name}</span>
           {hasChildren && (
-            <ChevronDown 
-              size={14} 
-              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${isActive ? 'text-white' : 'text-gray-400'}`} 
+            <ChevronDown
+              size={14}
+              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${isActive ? 'text-white' : 'text-gray-400'}`}
             />
           )}
         </Link>
-        
+
         {/* Рендерим детей, только если категория открыта */}
         {hasChildren && isOpen && (
           <div className="ml-2 pl-2 border-l border-gray-100 mt-1 space-y-0.5 animate-fadeIn">
@@ -134,39 +176,39 @@ export default async function CatalogPage({
       <ScrollButton />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Хлебные крошки */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
           <Link href="/" className="hover:text-blue-600 transition-colors">Главная</Link>
           <ChevronRight size={14} className="text-gray-300" />
           <Link href="/catalog" className={`hover:text-blue-600 transition-colors ${!categoryPath ? 'font-bold text-gray-900' : ''}`}>Каталог</Link>
-          
+
           {breadcrumbs.map((crumb, index) => (
-             <div key={crumb.path} className="flex items-center gap-2">
-               <ChevronRight size={14} className="text-gray-300" />
-               <Link 
-                 href={`/catalog?category=${encodeURIComponent(crumb.path)}`} 
-                 className={`transition-colors ${index === breadcrumbs.length - 1 ? "font-bold text-gray-900" : "hover:text-blue-600"}`}
-               >
-                 {crumb.name}
-               </Link>
-             </div>
+            <div key={crumb.path} className="flex items-center gap-2">
+              <ChevronRight size={14} className="text-gray-300" />
+              <Link
+                href={`/catalog?category=${encodeURIComponent(crumb.path)}`}
+                className={`transition-colors ${index === breadcrumbs.length - 1 ? "font-bold text-gray-900" : "hover:text-blue-600"}`}
+              >
+                {crumb.name}
+              </Link>
+            </div>
           ))}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Сайдбар (Дерево категорий) */}
           <aside className="w-full lg:w-64 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sticky top-24 max-h-[85vh] overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                 <h3 className="font-bold text-gray-900">Категории</h3>
-                 <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">{categories.length}</span>
+                <h3 className="font-bold text-gray-900">Категории</h3>
+                <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">{categories.length}</span>
               </div>
-              
+
               <div className="space-y-1">
-                <Link 
-                  href="/catalog" 
+                <Link
+                  href="/catalog"
                   className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${!categoryPath ? 'bg-black text-white font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                 >
                   <Folder size={16} />
@@ -175,7 +217,7 @@ export default async function CatalogPage({
 
                 {/* Рендерим корневые категории, остальное сделает рекурсия */}
                 <div className="mt-2 space-y-1">
-                   {rootCategories.map(renderCategoryNode)}
+                  {rootCategories.map(renderCategoryNode)}
                 </div>
               </div>
             </div>
@@ -183,41 +225,41 @@ export default async function CatalogPage({
 
           {/* Контент (Сетка товаров) */}
           <div className="flex-1">
-             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div>
-                    <h1 className="text-2xl font-black text-gray-900">
-                      {query ? `Поиск: «${query}»` : currentCategoryName}
-                    </h1>
-                    <p className="text-sm text-gray-400 mt-1">
-                       Найдено {count} товаров
-                    </p>
-                  </div>
-                  <CatalogSort />
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                  <h1 className="text-2xl font-black text-gray-900">
+                    {query ? `Поиск: «${query}»` : currentCategoryName}
+                  </h1>
+                  <p className="text-sm text-gray-400 mt-1">
+                    Найдено {count} товаров
+                  </p>
                 </div>
-             </div>
+                <CatalogSort />
+              </div>
+            </div>
 
-             {products && products.length > 0 ? (
-                <CatalogGrid 
-                  key={sort + query + categoryPath} 
-                  initialProducts={products} 
-                  totalCount={count || 0} 
-                  sort={sort}
-                  query={query}
-                  category={categoryPath}
-                />
-             ) : (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
-                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                     <Folder size={32} className="text-gray-300" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Здесь пока пусто</h3>
-                  <p className="text-gray-500 mb-6 max-w-xs mx-auto">Товары в этой категории еще не добавлены или не соответствуют фильтрам.</p>
-                  <Link href="/catalog" className="px-6 py-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition-colors">
-                    Сбросить фильтры
-                  </Link>
+            {products && products.length > 0 ? (
+              <CatalogGrid
+                key={sort + query + categoryPath}
+                initialProducts={products}
+                totalCount={count || 0}
+                sort={sort}
+                query={query}
+                category={categoryPath}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                  <Folder size={32} className="text-gray-300" />
                 </div>
-             )}
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Здесь пока пусто</h3>
+                <p className="text-gray-500 mb-6 max-w-xs mx-auto">Товары в этой категории еще не добавлены или не соответствуют фильтрам.</p>
+                <Link href="/catalog" className="px-6 py-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 transition-colors">
+                  Сбросить фильтры
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

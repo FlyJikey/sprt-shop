@@ -8,7 +8,7 @@ const groq = new OpenAI({
 });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!; 
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // --- СПИСОК РАЗРЕШЕННЫХ КОРНЕВЫХ КАТЕГОРИЙ ---
@@ -81,58 +81,79 @@ export async function POST(req: Request) {
     // Разбиваем ответ: ["Электроника", "Кабели", "USB"]
     // Убираем лишние кавычки и точки
     const categories = aiResponse.split('>').map(c => c.trim().replace(/['".]/g, ''));
-    
-    let currentPath = ""; 
+
+    let currentPath = "";
     let parentPath: string | null = null;
 
     // 2. ЦИКЛ СОЗДАНИЯ (Идем сверху вниз)
     for (let i = 0; i < categories.length; i++) {
-        const catName = categories[i]; // Например: "Кабели"
-        const catSlug = generateSlug(catName); // "kabeli"
-        
-        // Формируем полный путь: "elektronika/kabeli"
-        // Если это корень, то путь = слаг. Если нет - родитель/слаг
-        const fullPath = parentPath ? `${parentPath}/${catSlug}` : catSlug;
-        
-        // Проверяем, есть ли такая папка (по полному пути)
-        const { data: existingCat } = await supabase
-            .from('categories')
-            .select('id')
-            .eq('path', fullPath)
-            .maybeSingle();
+      const catName = categories[i]; // Например: "Кабели"
+      const catSlug = generateSlug(catName); // "kabeli"
 
-        if (!existingCat) {
-            // Создаем
-            console.log(`Создаю категорию: [${catName}] путь: [${fullPath}]`);
-            await supabase.from('categories').insert({
-                name: catName,       // Человеческое имя: "Кабели"
-                slug: catSlug,       // Слаг: "kabeli"
-                path: fullPath,      // Полный ID: "elektronika/kabeli"
-                parent_path: parentPath, // Родитель: "elektronika"
-                level: i + 1
-            });
-            // Небольшая задержка, чтобы база успела
-            await new Promise(r => setTimeout(r, 200));
-        }
-        
-        // Текущий путь становится родителем для следующего круга
-        parentPath = fullPath;
-        currentPath = fullPath;
+      // Формируем полный путь: "elektronika/kabeli"
+      // Если это корень, то путь = слаг. Если нет - родитель/слаг
+      const fullPath = parentPath ? `${parentPath}/${catSlug}` : catSlug;
+
+      // Проверяем, есть ли такая папка (по полному пути)
+      const { data: existingCat } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('path', fullPath)
+        .maybeSingle();
+
+      if (!existingCat) {
+        // Создаем
+        console.log(`Создаю категорию: [${catName}] путь: [${fullPath}]`);
+        await supabase.from('categories').insert({
+          name: catName,       // Человеческое имя: "Кабели"
+          slug: catSlug,       // Слаг: "kabeli"
+          path: fullPath,      // Полный ID: "elektronika/kabeli"
+          parent_path: parentPath, // Родитель: "elektronika"
+          level: i + 1
+        });
+        // Небольшая задержка, чтобы база успела
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      // Текущий путь становится родителем для следующего круга
+      parentPath = fullPath;
+      currentPath = fullPath;
     }
 
     // 3. ПРИСВАИВАЕМ ТОВАРУ ПУТЬ
     // В поле category мы пишем ПОЛНЫЙ ПУТЬ (elektronika/kabeli/usb), чтобы фильтры работали
     const { error } = await supabase
       .from('products')
-      .update({ category: currentPath }) 
+      .update({ category: currentPath })
       .eq('id', productId);
 
     if (error) throw error;
+
+    await supabase.from('ai_history').insert({
+      product_id: productId,
+      action_type: 'categorize',
+      ai_result: aiResponse,
+      status: 'success'
+    });
 
     return NextResponse.json({ success: true, category: aiResponse });
 
   } catch (error: any) {
     console.error('Categorize Error:', error);
+
+    // Пытаемся сохранить ошибку в историю (если есть id)
+    try {
+      const pid = await req.json().then(b => b.productId).catch(() => null);
+      if (pid) {
+        await supabase.from('ai_history').insert({
+          product_id: pid,
+          action_type: 'categorize',
+          ai_result: error.message || 'Unknown error',
+          status: 'error'
+        });
+      }
+    } catch (e) { /* Игнорируем ошибки логирования */ }
+
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
