@@ -62,10 +62,11 @@ export default async function AdminDashboard() {
     return <div className="p-8 text-red-500">Ошибка загрузки статистики: {error.message}</div>;
   }
 
-  // 5. Получаем общее количество записей в листе ожидания
+  // 5. Получаем общее количество записей в листе ожидания (только тех товаров, которых нет в наличии)
   const { count: waitlistCount } = await supabaseAdmin
     .from('waitlist')
-    .select('*', { count: 'exact', head: true });
+    .select('id, products!inner(stock)', { count: 'exact', head: true })
+    .lte('products.stock', 0);
 
   const totalDeals = stats.completed_orders || 1;
   const averageCheck = stats.revenue / totalDeals;

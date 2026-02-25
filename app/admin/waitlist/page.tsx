@@ -55,9 +55,11 @@ export default async function AdminWaitlistPage() {
         slug,
         stock,
         price,
-        images
+        price,
+        image_url
       )
-    `);
+    `)
+        .lte('products.stock', 0);
 
     if (error) {
         return <div className="p-8 text-red-500">Ошибка загрузки данных: {error.message}</div>;
@@ -138,15 +140,7 @@ export default async function AdminWaitlistPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {sortedStats.map(({ count, product }) => {
-                                    // Пытаемся получить картинку
-                                    let imageUrl = null;
-                                    try {
-                                        if (product.images) {
-                                            const imgs = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
-                                            if (Array.isArray(imgs) && imgs.length > 0) imageUrl = imgs[0];
-                                        }
-                                    } catch (e) { }
-
+                                    const imageUrl = product.image_url;
                                     const inStock = (product.stock || 0) > 0;
 
                                     return (
