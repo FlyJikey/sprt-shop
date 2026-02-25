@@ -388,6 +388,8 @@ export async function generateSearchEmbedding(text: string) {
     env.token = null;
     env.allowLocalModels = false;
     env.allowRemoteModels = true;
+    env.backends.onnx.wasm.numThreads = 1;
+    env.backends.onnx.wasm.simd = false;
     env.cacheDir = './.cache';
 
     if (!extractor) {

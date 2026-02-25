@@ -3,11 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 import { pipeline, env } from '@xenova/transformers';
 
 // --- КОНФИГУРАЦИЯ ОКРУЖЕНИЯ ИИ ---
-// Отключаем поиск токенов в системных переменных, чтобы избежать ошибок "Unauthorized"
+// Отключаем поиск токенов в системных переменных
+// @ts-ignore
 env.token = null;
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
-// Указываем путь к кэшу, чтобы модель не скачивалась каждый раз при перезапуске (опционально)
+// Принудительно используем WASM бэкенд для Vercel вместо Node.js C++
+env.backends.onnx.wasm.numThreads = 1;
+env.backends.onnx.wasm.simd = false;
+// Указываем путь к кэшу
 env.cacheDir = './.cache';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
