@@ -9,7 +9,7 @@ import {
   ShoppingBag, User, RefreshCcw, Mail,
   Clock, Package, CheckCircle2, XCircle,
   X, ShoppingCart, ChevronRight, MessageCircle, Send,
-  Bell, Heart
+  Bell, Heart, Trash2
 } from 'lucide-react';
 import { getOrderMessages, sendOrderMessage } from '@/app/actions';
 import Image from 'next/image';
@@ -237,6 +237,24 @@ function ProfileContent() {
     router.push('/');
   };
 
+  const handleRemoveWaitlist = async (e: React.MouseEvent, waitlistId: number) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const { error } = await supabase.from('waitlist').delete().eq('id', waitlistId);
+    if (!error) {
+      setWaitlist(prev => prev.filter(item => item.id !== waitlistId));
+    }
+  };
+
+  const handleRemoveFavorite = async (e: React.MouseEvent, favoriteId: number) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const { error } = await supabase.from('favorites').delete().eq('id', favoriteId);
+    if (!error) {
+      setFavorites(prev => prev.filter(item => item.id !== favoriteId));
+    }
+  };
+
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'new': return { label: 'Новый', color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} /> };
@@ -386,6 +404,14 @@ function ProfileContent() {
                               </div>
                             )}
 
+                            <button
+                              onClick={(e) => handleRemoveWaitlist(e, item.id)}
+                              className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-white/90 backdrop-blur hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all z-20 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                              title="Удалить"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+
                             {item.products?.image_url ? (
                               <Image src={item.products.image_url} alt="product" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
                             ) : (
@@ -430,6 +456,14 @@ function ProfileContent() {
                           <div className="absolute top-2 left-2 sm:top-3 sm:left-3 text-red-500 z-10">
                             <Heart size={20} className="fill-current" />
                           </div>
+
+                          <button
+                            onClick={(e) => handleRemoveFavorite(e, item.id)}
+                            className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-white/90 backdrop-blur hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all z-20 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                            title="Удалить"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
 
                           {item.products?.image_url ? (
                             <Image src={item.products.image_url} alt="product" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
