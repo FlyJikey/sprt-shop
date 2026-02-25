@@ -23,8 +23,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Переменная для хранения модели в памяти (singleton)
 let extractor: any = null;
 
-// Принудительно запускаем в Edge-окружении, чтобы избежать ошибок с libonnxruntime.so
-export const runtime = 'edge';
+// Принудительно запускаем в Node-окружении
+// (Edge удален из-за ограничений WASM)
 
 export async function POST(req: Request) {
   try {

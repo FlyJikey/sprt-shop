@@ -11,7 +11,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export const runtime = 'edge';
+
 
 // --- СПИСОК РАЗРЕШЕННЫХ КОРНЕВЫХ КАТЕГОРИЙ ---
 // Это гарантия того, что у тебя будет порядок, а не хаос.
