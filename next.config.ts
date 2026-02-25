@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  serverExternalPackages: ['@xenova/transformers'],
 
   typescript: {
     ignoreBuildErrors: true,
