@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
-import { ShoppingCart, Search, Menu, X, User, LogOut, Heart, Bell } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, User, Heart, Bell, LayoutGrid } from 'lucide-react';
 import { useCart } from '@/app/store';
 import { supabase } from '@/lib/supabase-client';
 import CategoryMenu from './CategoryMenu';
@@ -198,6 +198,14 @@ function HeaderContent() {
 
           <div className="pt-2">
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Каталог</p>
+            <Link
+              href="/catalog"
+              className="flex items-center gap-3 p-3 text-lg font-bold text-gray-900 border-b border-gray-50 mb-2 hover:bg-gray-50 rounded-lg"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <LayoutGrid size={20} className="text-gray-400" />
+              Все товары
+            </Link>
             {categories.map((cat) => (
               <Link
                 key={cat.id}
@@ -222,13 +230,6 @@ function HeaderContent() {
                   <User size={20} />
                   Личный кабинет
                 </Link>
-                <button
-                  onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                  className="flex items-center gap-3 p-3 text-red-500 hover:bg-red-50 rounded-xl font-medium w-full"
-                >
-                  <LogOut size={20} />
-                  Выйти
-                </button>
               </>
             ) : (
               <Link
