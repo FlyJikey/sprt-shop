@@ -11,7 +11,8 @@ import {
   updateOrderStatus,
   getOrderItems,
   getOrderMessages,
-  sendOrderMessage
+  sendOrderMessage,
+  markOrderMessagesRead
 } from '@/app/actions';
 
 export default function AdminOrdersPage() {
@@ -115,6 +116,13 @@ export default function AdminOrdersPage() {
       ]);
       setItems(orderItems);
       setMessages(orderMsgs);
+
+      // Если в заказе есть непрочитанные сообщения для админа, помечаем прочитанным
+      const targetOrder = orders.find(o => o.id === orderId);
+      if (targetOrder?.has_unread_admin) {
+        await markOrderMessagesRead(orderId, true);
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, has_unread_admin: false } : o));
+      }
     }
   };
 
@@ -189,7 +197,15 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center gap-8">
                       <span className="text-xl font-black text-gray-300">#{order.id}</span>
                       <div>
-                        <div className="font-black text-gray-900 text-lg">{order.customer_name}</div>
+                        <div className="flex items-center gap-3">
+                          <div className="font-black text-gray-900 text-lg">{order.customer_name}</div>
+                          {order.has_unread_admin && (
+                            <span className="flex h-3 w-3 relative" title="Новые сообщения">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                            </span>
+                          )}
+                        </div>
                         <div className="text-xs text-gray-400 font-bold uppercase tracking-tight">{order.customer_phone}</div>
                       </div>
                       <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase flex items-center gap-2 ${status.color}`}>

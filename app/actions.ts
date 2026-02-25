@@ -204,13 +204,26 @@ async function sendNotificationEmail(orderId: number, text: string, to: string, 
 }
 
 export async function sendOrderMessage(orderId: number, text: string, isAdmin: boolean = false, userId?: string) {
+  // 1. Сохраняем сообщение
   await supabaseAdmin.from('order_messages').insert([{ order_id: orderId, text, is_admin: isAdmin, sender_id: userId || null }]);
+
+  // 2. Обновляем статус непрочитанных в заказе
+  const updateData = isAdmin ? { has_unread_user: true } : { has_unread_admin: true };
+  await supabaseAdmin.from('orders').update(updateData).eq('id', orderId);
+
+  // 3. Отправляем email уведомление
   const { data: order } = await supabaseAdmin.from('orders').select('user_id').eq('id', orderId).single();
   if (order) {
     const targetEmail = isAdmin ? await getOrFixUserEmail(order.user_id) : STORE_EMAIL;
-    if (targetEmail) await sendNotificationEmail(orderId, text, targetEmail, isAdmin ? 'Новое сообщение' : 'Вопрос от клиента');
+    if (targetEmail) await sendNotificationEmail(orderId, text, targetEmail, isAdmin ? 'Новое сообщение от магазина' : `Новое сообщение по заказу #${orderId}`);
   }
   revalidatePath('/admin/orders');
+  return { success: true };
+}
+
+export async function markOrderMessagesRead(orderId: number, asAdmin: boolean) {
+  const updateData = asAdmin ? { has_unread_admin: false } : { has_unread_user: false };
+  await supabaseAdmin.from('orders').update(updateData).eq('id', orderId);
   return { success: true };
 }
 

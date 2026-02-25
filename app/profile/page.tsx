@@ -11,7 +11,7 @@ import {
   X, ShoppingCart, ChevronRight, MessageCircle, Send,
   Bell, Heart, Trash2
 } from 'lucide-react';
-import { getOrderMessages, sendOrderMessage } from '@/app/actions';
+import { getOrderMessages, sendOrderMessage, markOrderMessagesRead } from '@/app/actions';
 import Image from 'next/image';
 
 function ProfileContent() {
@@ -204,6 +204,11 @@ function ProfileContent() {
     setSelectedOrder(order);
     const msgs = await getOrderMessages(order.id);
     setMessages(msgs);
+
+    if (order.has_unread_user) {
+      await markOrderMessagesRead(order.id, false);
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, has_unread_user: false } : o));
+    }
   };
 
   const handleSendMessage = async () => {
@@ -364,7 +369,15 @@ function ProfileContent() {
                           className="cursor-pointer group border border-gray-50 rounded-3xl p-6 hover:border-blue-500 hover:shadow-2xl hover:shadow-blue-500/10 transition-all bg-gray-50/50 flex justify-between items-center"
                         >
                           <div className="space-y-1">
-                            <div className="text-xl font-black text-gray-900 group-hover:text-blue-600 transition-colors tracking-tighter">Заказ #{order.id}</div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-xl font-black text-gray-900 group-hover:text-blue-600 transition-colors tracking-tighter">Заказ #{order.id}</div>
+                              {order.has_unread_user && (
+                                <span className="flex h-3 w-3 relative mb-1" title="Новое сообщение">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-gray-400 font-bold">{new Date(order.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                             <div className={`mt-3 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${style.color}`}>
                               {style.icon} {style.label}
