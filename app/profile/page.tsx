@@ -453,16 +453,12 @@ function ProfileContent() {
                     {favorites.map((item) => (
                       <div key={item.id} className="bg-gray-50/50 border border-gray-100 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col hover:border-red-100 transition-colors group cursor-pointer" onClick={() => router.push(`/product/${item.products?.slug}`)}>
                         <div className="aspect-square bg-white rounded-xl sm:rounded-2xl mb-3 sm:mb-4 p-2 sm:p-4 flex items-center justify-center border border-gray-50 overflow-hidden relative">
-                          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 text-red-500 z-10">
-                            <Heart size={20} className="fill-current" />
-                          </div>
-
                           <button
                             onClick={(e) => handleRemoveFavorite(e, item.id)}
-                            className="absolute top-2 right-2 sm:top-3 sm:right-3 p-1.5 sm:p-2 bg-white/90 backdrop-blur hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-full transition-all z-20 shadow-sm opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-                            title="Удалить"
+                            className="absolute top-2 left-2 sm:top-3 sm:left-3 text-red-500 hover:text-red-600 transition-transform hover:scale-110 z-20 p-2"
+                            title="Удалить из избранного"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Heart size={20} className="fill-current" />
                           </button>
 
                           {item.products?.image_url ? (
