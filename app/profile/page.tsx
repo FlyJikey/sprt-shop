@@ -334,7 +334,7 @@ function ProfileContent() {
 
           <section className="flex-1">
             <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 min-h-[500px]">
-              <div className="flex items-center gap-4 sm:gap-6 mb-8 border-b border-gray-100 pb-4 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-4 sm:gap-6 mb-8 border-b border-gray-100 pb-4 overflow-x-auto overflow-y-hidden touch-pan-x no-scrollbar">
                 <button
                   onClick={() => setActiveTab('orders')}
                   className={`flex items-center gap-2 font-black text-sm sm:text-xl uppercase tracking-tighter pb-4 -mb-[17px] border-b-2 transition-all whitespace-nowrap ${activeTab === 'orders' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-400 hover:text-gray-900'}`}
