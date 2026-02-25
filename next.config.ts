@@ -17,9 +17,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  
-  // Важно для работы нейросети
-  serverExternalPackages: ['@xenova/transformers'],
+
+  // Важно для работы нейросети на Vercel (чтобы бинарники ONNX паковались)
+  serverExternalPackages: ['@xenova/transformers', 'onnxruntime-node'],
 
   typescript: {
     ignoreBuildErrors: true,
