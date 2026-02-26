@@ -8,6 +8,7 @@ import AddToCart from '@/components/AddToCart';
 import RelatedProductsWrapper from '@/components/RelatedProductsWrapper';
 import FavoriteButton from '@/components/FavoriteButton';
 import { ArrowLeft, Check, AlertCircle, Package } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 
 export const revalidate = 0;
 
@@ -51,9 +52,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
           <div className="mb-6">
-            <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors">
-              <ArrowLeft size={16} /> Назад к каталогу
-            </Link>
+            <BackButton fallback="/catalog" />
           </div>
 
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-10 mb-16">

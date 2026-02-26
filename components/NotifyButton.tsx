@@ -9,20 +9,28 @@ interface NotifyButtonProps {
     productId: number;
 }
 
-// Глобальный кэш для предотвращения 40 запросов на странице каталога одновременно
 let globalFetchPromise: Promise<{ user: any, waitlist: Set<number> }> | null = null;
 
 async function getWaitlistData() {
-    if (!globalFetchPromise) {
-        globalFetchPromise = (async () => {
+    if (globalFetchPromise) {
+        return globalFetchPromise;
+    }
+
+    globalFetchPromise = new Promise(async (resolve) => {
+        try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 const waitlist = await getUserWaitlist(user.id);
-                return { user, waitlist: new Set(waitlist) };
+                resolve({ user, waitlist: new Set(waitlist) });
+            } else {
+                resolve({ user: null, waitlist: new Set<number>() });
             }
-            return { user: null, waitlist: new Set<number>() };
-        })();
-    }
+        } catch (error) {
+            console.error("Waitlist fetch error", error);
+            resolve({ user: null, waitlist: new Set<number>() });
+        }
+    });
+
     return globalFetchPromise;
 }
 
