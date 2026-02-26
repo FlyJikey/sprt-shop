@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
 import Link from 'next/link';
 import AddToCart from '@/components/AddToCart';
@@ -28,11 +28,97 @@ interface CatalogGridProps {
 }
 
 export default function CatalogGrid({ initialProducts, totalCount, sort, query, category }: CatalogGridProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cacheKey = `catalog-state-${sort}-${query}-${category}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          // Восстанавливаем только если закэшированные продукты совпадают по фильтрам и их не меньше чем пришло с сервера
+          if (parsed && Array.isArray(parsed.products) && parsed.products.length >= initialProducts.length) {
+            // Запоминаем позицию скролла для последующего восстановления
+            if (parsed.scrollY) {
+              window.sessionStorage.setItem('restore_scroll', parsed.scrollY.toString());
+            }
+            return parsed.products;
+          }
+        } catch (e) {
+          console.error("Cache parsing error", e);
+        }
+      }
+    }
+    return initialProducts;
+  });
 
+  const [page, setPage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const cacheKey = `catalog-state-${sort}-${query}-${category}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && typeof parsed.page === 'number' && parsed.products?.length >= initialProducts.length) {
+            return parsed.page;
+          }
+        } catch (e) { }
+      }
+    }
+    return 1;
+  });
+
+  const [loading, setLoading] = useState(false);
   const hasMore = products.length < totalCount;
+
+  // Восстановление скролла после рендеринга восстановленных товаров
+  useEffect(() => {
+    const scrollY = window.sessionStorage.getItem('restore_scroll');
+    if (scrollY) {
+      // Имитируем небольшую задержку, чтобы браузер успел отрендерить DOM перед перемоткой
+      setTimeout(() => {
+        window.scrollTo({ top: parseInt(scrollY, 10), behavior: 'instant' });
+        window.sessionStorage.removeItem('restore_scroll');
+      }, 50);
+    }
+  }, []);
+
+  // Сохраняем состояние при изменениях товаров, загрузочной страницы или скролла
+  useEffect(() => {
+    const handleScroll = () => {
+      // Игнорируем скролл во время загрузки (когда он скачет) или если мы навигируемся
+      if (typeof window === 'undefined') return;
+
+      const cacheKey = `catalog-state-${sort}-${query}-${category}`;
+      const state = {
+        products,
+        page,
+        scrollY: window.scrollY
+      };
+      // Используем RequestAnimationFrame для дебаунса частого скролла (чтобы не убить производительность)
+      sessionStorage.setItem(cacheKey, JSON.stringify(state));
+    };
+
+    let scrollTimeout: NodeJS.Timeout;
+    const throttledScroll = () => {
+      if (!scrollTimeout) {
+        scrollTimeout = setTimeout(() => {
+          handleScroll();
+          scrollTimeout = undefined as any;
+        }, 300); // Сохраняем не чаще 3 раз в секунду
+      }
+    };
+
+    window.addEventListener('scroll', throttledScroll);
+
+    // Принудительно сохраняем стейт при монтировании/обновлении товаров
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', throttledScroll);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+    };
+  }, [products, page, sort, query, category]);
+
 
   const loadMore = async () => {
     setLoading(true);

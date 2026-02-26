@@ -35,15 +35,24 @@ export default function NotifyButton({ productId }: NotifyButtonProps) {
     useEffect(() => {
         let isMounted = true;
 
-        getWaitlistData().then(({ user, waitlist }) => {
-            if (!isMounted) return;
-            setUser(user);
-            setIsNotifying(waitlist.has(productId));
-            setLoading(false);
-        });
+        getWaitlistData()
+            .then(({ user, waitlist }) => {
+                if (!isMounted) return;
+                setUser(user);
+                setIsNotifying(waitlist.has(productId));
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error("Error fetching waitlist:", error);
+                if (!isMounted) return;
+                setLoading(false); // Всегда сбрасываем состояние загрузки при ошибке
+            });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-            globalFetchPromise = null; // сброс кэша при входе/выходе
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+            // Сбрасываем кэш ТОЛЬКО при реальном входе/выходе, а не при инициализации INITIAL_SESSION
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+                globalFetchPromise = null;
+            }
         });
 
         return () => {
