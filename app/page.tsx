@@ -12,9 +12,18 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export default async function HomePage() {
   const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const { data: navLinks } = await supabase.from('nav_links').select('*').order('sort_order');
-  const { data: gridItems } = await supabase.from('grid_categories').select('*').order('sort_order');
-  const { data: products } = await supabase.from('products').select('*').order('id', { ascending: true }).range(0, PRODUCTS_PER_PAGE - 1);
+  // Выполняем запросы параллельно для скорости
+  const [
+    { data: navLinks },
+    { data: gridItems },
+    { data: products },
+    { data: banners }
+  ] = await Promise.all([
+    supabase.from('nav_links').select('*').order('sort_order'),
+    supabase.from('grid_categories').select('*').order('sort_order'),
+    supabase.from('products').select('*').order('id', { ascending: true }).range(0, PRODUCTS_PER_PAGE - 1),
+    supabase.from('hero_banners').select('*').order('sort_order', { ascending: true })
+  ]);
 
   return (
     <main className="min-h-screen bg-white font-sans pb-20">
@@ -24,6 +33,7 @@ export default async function HomePage() {
         initialGridItems={gridItems || []}
         initialProducts={products || []}
         totalInitialProducts={products?.length || 0}
+        initialBanners={banners || []}
       />
     </main>
   );

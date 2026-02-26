@@ -17,13 +17,15 @@ interface HomePageClientProps {
     initialGridItems: any[];
     initialProducts: any[];
     totalInitialProducts: number;
+    initialBanners: any[];
 }
 
 export default function HomePageClient({
     initialNavLinks,
     initialGridItems,
     initialProducts,
-    totalInitialProducts
+    totalInitialProducts,
+    initialBanners
 }: HomePageClientProps) {
     const [products, setProducts] = useState<any[]>(initialProducts);
     const [page, setPage] = useState(0);
@@ -82,7 +84,7 @@ export default function HomePageClient({
 
             <div className="max-w-7xl mx-auto px-4 mt-8 space-y-16">
 
-                <HeroSlider />
+                <HeroSlider initialBanners={initialBanners} />
 
                 <section>
                     {initialGridItems.length > 0 ? (

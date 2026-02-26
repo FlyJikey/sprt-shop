@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
   // Жестко заставляем Vercel упаковать внешние модули в Serverless функции
   serverExternalPackages: ['@xenova/transformers', 'onnxruntime-node'],
 
+  // Указываем Next.js скомпилировать пакет lucide-react для правильной работы dynamicIconImports
+  transpilePackages: ['lucide-react'],
+
   typescript: {
     ignoreBuildErrors: true,
   },

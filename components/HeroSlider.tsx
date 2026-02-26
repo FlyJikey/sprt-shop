@@ -18,10 +18,9 @@ interface Banner {
   image_scale?: number;
 }
 
-export default function HeroSlider() {
-  const [banners, setBanners] = useState<Banner[]>([]);
+export default function HeroSlider({ initialBanners }: { initialBanners: Banner[] }) {
+  const [banners, setBanners] = useState<Banner[]>(initialBanners);
   const [current, setCurrent] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -29,14 +28,12 @@ export default function HeroSlider() {
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Обновляем баннеры, только если они изменились сверху (обычно не нужно для SSR, но для безопасности)
   useEffect(() => {
-    const fetchBanners = async () => {
-      const { data } = await (supabase.from('hero_banners') as any).select('*').order('sort_order', { ascending: true });
-      if (data) setBanners(data);
-      setLoading(false);
-    };
-    fetchBanners();
-  }, []);
+    if (initialBanners && initialBanners.length > 0) {
+      setBanners(initialBanners);
+    }
+  }, [initialBanners]);
 
   const resetTimer = () => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -72,13 +69,11 @@ export default function HeroSlider() {
     resetTimer();
   };
 
-  if (loading) {
+  if (!banners || banners.length === 0) {
     return (
       <div className="relative h-[500px] w-full overflow-hidden rounded-[3rem] bg-gray-50 animate-pulse border-4 border-white shadow-2xl shadow-gray-200" />
     );
   }
-
-  if (banners.length === 0) return null;
 
   return (
     <div
