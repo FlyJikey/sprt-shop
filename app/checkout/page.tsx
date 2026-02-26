@@ -1,30 +1,58 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Header from "@/components/Header";
 import { useCart } from "../store";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { submitOrder } from "../actions";
+import { supabase } from "@/lib/supabase";
 
 // --- ВНУТРЕННИЙ КОМПОНЕНТ С ЛОГИКОЙ ---
 function CheckoutContent() {
   const { items, clearCart } = useCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setUserId(data.user.id);
+    });
+  }, []);
 
   const totalPrice = items.reduce((sum, item) => {
     return sum + item.price * item.quantity;
   }, 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg("");
 
-    setTimeout(() => {
-      clearCart();
-      router.push("/success");
-    }, 1500);
+    const formData = new FormData(e.currentTarget);
+    const firstName = formData.get("first_name") as string;
+    const lastName = formData.get("last_name") as string;
+
+    // Combine name for action
+    formData.set("name", `${firstName} ${lastName}`);
+
+    try {
+      const result = await submitOrder(formData, items, totalPrice, userId || undefined);
+
+      if (result.success) {
+        clearCart();
+        router.push("/success");
+      } else {
+        setErrorMsg(result.error || "Произошла ошибка при оформлении заказа. Попробуйте еще раз.");
+        setLoading(false);
+      }
+    } catch (err) {
+      setErrorMsg("Ошибка соединения. Пожалуйста, проверьте интернет.");
+      setLoading(false);
+    }
   };
 
   if (items.length === 0) {
@@ -60,33 +88,39 @@ function CheckoutContent() {
             <p className="text-gray-500 text-sm mb-8">Заполните данные для резервирования товара.</p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {errorMsg && (
+                <div className="bg-red-50 text-red-600 p-4 rounded-lg text-sm mb-6 border border-red-100">
+                  {errorMsg}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-700">Имя</label>
-                  <input required type="text" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="Иван" />
+                  <input name="first_name" required type="text" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="Иван" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-gray-700">Фамилия</label>
-                  <input required type="text" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="Иванов" />
+                  <input name="last_name" required type="text" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="Иванов" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-700">Email</label>
-                <input required type="email" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="ivan@example.com" />
+                <input name="email" required type="email" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="ivan@example.com" />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-gray-700">Телефон</label>
-                <input required type="tel" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="+7 (999) 000-00-00" />
+                <input name="phone" required type="tel" className="w-full border-b border-gray-300 py-2 outline-none focus:border-[#C5A070] transition-colors bg-transparent placeholder:text-gray-300" placeholder="+7 (999) 000-00-00" />
               </div>
 
               <div className="bg-[#F9F9F9] p-6 rounded-lg mt-8 border border-gray-100">
                 <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <MapPin size={18} className="text-[#9C2730]" /> Пункт выдачи
+                  <MapPin size={18} className="text-[#9C2730]" /> Забрать в магазине
                 </h3>
-                <p className="text-sm text-gray-600 mb-2">Флагманский магазин Москва</p>
-                <p className="text-sm text-gray-500">Улица Петровка, 10</p>
+                <p className="text-sm text-gray-600 mb-2">Флагманский магазин "Спартак"</p>
+                <p className="text-sm text-gray-500">Оплата при получении товара</p>
                 <div className="flex items-center gap-2 mt-4 text-xs font-bold text-green-700 bg-green-50 w-fit px-3 py-1 rounded-full">
                   <Clock size={12} /> Готов к выдаче через 2 часа
                 </div>
@@ -97,10 +131,14 @@ function CheckoutContent() {
                 type="submit"
                 className="w-full bg-black text-white h-14 font-bold uppercase tracking-widest hover:bg-[#C5A070] transition-all mt-8 disabled:opacity-70 disabled:cursor-wait"
               >
-                {loading ? "Обработка..." : "Подтвердить бронь"}
+                {loading ? "Обработка..." : "Забронировать"}
               </button>
-              <p className="text-[10px] text-gray-400 text-center mt-4">
-                Нажимая кнопку, вы соглашаетесь с условиями обработки данных. Оплата при получении.
+              <p className="text-[10px] text-gray-400 text-center mt-4 px-4 leading-relaxed">
+                Нажимая кнопку, вы соглашаетесь с{" "}
+                <Link href="/about/privacy" className="underline hover:text-black">Политикой конфиденциальности</Link>,{" "}
+                <Link href="/about/terms" className="underline hover:text-black">Пользовательским соглашением</Link> и{" "}
+                соглашаетесь на обработку персональных данных в соответствии с ФЗ №152-ФЗ.
+                Оплата производится при получении в магазине.
               </p>
             </form>
           </div>

@@ -39,7 +39,7 @@ export default function HomePageClient({
 
         const { data } = await supabase
             .from('products')
-            .select('*')
+            .select('id, name, price, image_url, category, slug')
             .order('id', { ascending: true })
             .range(from, to);
 
@@ -137,7 +137,8 @@ export default function HomePageClient({
                                                 alt={p.name}
                                                 fill
                                                 priority={index < 4}
-                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                                loading={index < 4 ? undefined : "lazy"}
+                                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                                                 className="object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (

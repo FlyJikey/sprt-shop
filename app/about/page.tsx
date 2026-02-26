@@ -2,6 +2,7 @@ import Header from '@/components/Header';
 import AddressContactCard from '@/components/AddressContactCard';
 import { MapPin, Phone, Clock, Mail, CheckCircle2, Package } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -115,6 +116,22 @@ export default async function AboutPage() {
               text={email}
               href={`mailto:${email}`}
             />
+          </div>
+        </div>
+
+        {/* Юридическая информация (Добавлено) */}
+        <div className="bg-white rounded-3xl p-8 md:p-12 border border-gray-100 mt-12 shadow-sm">
+          <h2 className="text-xl font-bold uppercase tracking-wide mb-6">Правовая информация</h2>
+          <div className="flex flex-col sm:flex-row gap-6 text-sm font-bold text-gray-500">
+            <Link href="/about/privacy" className="hover:text-black transition-colors underline-offset-4 hover:underline">
+              Политика конфиденциальности
+            </Link>
+            <Link href="/about/terms" className="hover:text-black transition-colors underline-offset-4 hover:underline">
+              Пользовательское соглашение
+            </Link>
+            <Link href="/about/returns" className="hover:text-black transition-colors underline-offset-4 hover:underline">
+              Условия возврата
+            </Link>
           </div>
         </div>
 

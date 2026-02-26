@@ -42,7 +42,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
     const from = (nextPage - 1) * itemsPerPage;
     const to = from + itemsPerPage - 1;
 
-    let dbQuery = supabase.from('products').select('*');
+    let dbQuery = supabase.from('products').select('id, slug, name, price, image_url, category, stock');
 
     if (query) {
       dbQuery = dbQuery.ilike('name', `%${query}%`);
@@ -97,7 +97,8 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
                   alt={product.name}
                   fill
                   priority={index < 4}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  loading={index < 4 ? undefined : "lazy"}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
                   className="object-contain p-2 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
