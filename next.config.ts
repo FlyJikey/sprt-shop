@@ -31,11 +31,10 @@ const nextConfig: NextConfig = {
 
   turbopack: {},
 
-  // Принудительно включаем бинарники ONNXRuntime в итоговую сборку роута /api
-  // Это 100% официальный workaround от Vercel для бинарников Next.js
+  // Принудительно включаем бинарники ONNXRuntime ТОЛЬКО в API-роуты (ИИ)
+  // Раньше паттерн /(.*)  включал их во ВСЕ страницы — это вызывало огромные cold starts
   outputFileTracingIncludes: {
     '/api/**/*': ['./node_modules/onnxruntime-node/bin/napi-v3/**/*.so', './node_modules/onnxruntime-node/bin/napi-v3/**/*.node'],
-    '/(.*)': ['./node_modules/onnxruntime-node/bin/napi-v3/**/*.so', './node_modules/onnxruntime-node/bin/napi-v3/**/*.node'],
   },
 };
 

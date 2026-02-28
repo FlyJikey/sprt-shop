@@ -5,7 +5,7 @@ import CatalogSort from '@/components/CatalogSort';
 import CatalogGrid from '@/components/CatalogGrid';
 import ScrollButton from '@/components/ScrollButton';
 import { ChevronRight, ChevronDown, Folder } from 'lucide-react';
-import { generateSearchEmbedding } from '@/app/actions';
+import { generateSearchEmbedding } from '@/app/ai-actions';
 
 export const revalidate = 60;
 
