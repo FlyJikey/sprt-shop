@@ -11,7 +11,7 @@ import { ArrowLeft, Check, AlertCircle, Package } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import ProductImageZoom from '@/components/ProductImageZoom';
 
-export const revalidate = 0;
+export const revalidate = 120;
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;

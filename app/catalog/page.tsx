@@ -7,7 +7,7 @@ import ScrollButton from '@/components/ScrollButton';
 import { ChevronRight, ChevronDown, Folder } from 'lucide-react';
 import { generateSearchEmbedding } from '@/app/actions';
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 // Тип для категории из БД
 type Category = {

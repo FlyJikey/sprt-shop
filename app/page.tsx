@@ -2,7 +2,7 @@ import Header from '@/components/Header';
 import HomePageClient from '@/components/HomePageClient';
 import { createClient } from '@supabase/supabase-js';
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 const PRODUCTS_PER_PAGE = 8;
 

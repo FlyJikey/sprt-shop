@@ -71,10 +71,8 @@ export async function middleware(request: NextRequest) {
       loginUrl.pathname = '/login'
       return NextResponse.redirect(loginUrl)
     }
-  } else {
-    // Для остальных страниц (главная, каталог) просто обновляем куки без блокирующего запроса getUser
-    await supabase.auth.getSession()
   }
+  // Для публичных страниц (главная, каталог) НЕ делаем запросов к auth — экономим ~200ms
 
   return response
 }

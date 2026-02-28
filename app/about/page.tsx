@@ -9,7 +9,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-export const revalidate = 0;
+export const revalidate = 3600;
 
 export const metadata = {
   title: 'О нас | Магазин Спартак',
