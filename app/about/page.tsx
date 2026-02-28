@@ -59,10 +59,10 @@ export default async function AboutPage() {
             </p>
 
             <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FeatureItem text="Более 15 000 товаров" />
+              <FeatureItem text="Более 20 000 товаров" />
               <FeatureItem text="Работаем без выходных" />
               <FeatureItem text="Гарантия качества" />
-              <FeatureItem text="Профессиональные консультанты" />
+              <FeatureItem text="Профессиональная консультация" />
             </div>
           </div>
 

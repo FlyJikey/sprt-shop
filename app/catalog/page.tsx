@@ -43,44 +43,47 @@ export default async function CatalogPage({
   let count: number | null = 0;
 
   if (query) {
-    // === СЕМАНТИЧЕСКИЙ (УМНЫЙ) ПОИСК ===
-    const embedRes = await generateSearchEmbedding(query);
+    // 1. СНАЧАЛА ТОЧНЫЙ ПОИСК (Как в админке)
+    let exactQuery = supabase.from('products').select('*', { count: 'exact' }).ilike('name', `%${query}%`);
+    if (categoryPath) exactQuery = exactQuery.ilike('category', `${categoryPath}%`);
 
-    if (embedRes.success && embedRes.vector) {
-      // Ищем через RPC функцию по вектору
-      const { data: semanticData } = await supabase.rpc('search_products_semantic', {
-        query_embedding: embedRes.vector,
-        match_threshold: 0.2, // Мягкий порог для поиска
-        match_count: itemsPerPage,
-        category_filter: categoryPath || null
-      });
-
-      if (semanticData && semanticData.length > 0) {
-        products = semanticData;
-        count = semanticData.length;
-
-        // Сортировка семантических результатов происходит внутри SQL (по релевантности).
-        // Но если юзер выбрал другой сорт - применим локально
-        if (sort === 'price_asc') products.sort((a, b) => a.price - b.price);
-        if (sort === 'price_desc') products.sort((a, b) => b.price - a.price);
-        if (sort === 'name_asc') products.sort((a, b) => a.name.localeCompare(b.name));
-      } else {
-        // Фолбэк на обычный поиск, если ИИ ничего не нашел
-        let dbQuery = supabase.from('products').select('*', { count: 'exact' }).ilike('name', `%${query}%`);
-        if (categoryPath) dbQuery = dbQuery.ilike('category', `${categoryPath}%`);
-        const { data, count: fallbackCount } = await dbQuery.limit(itemsPerPage);
-        products = data || [];
-        count = fallbackCount;
-      }
-    } else {
-      // Фолбэк на обычный поиск при ошибке генерации вектора
-      let dbQuery = supabase.from('products').select('*', { count: 'exact' }).ilike('name', `%${query}%`);
-      if (categoryPath) dbQuery = dbQuery.ilike('category', `${categoryPath}%`);
-      const { data, count: fallbackCount } = await dbQuery.limit(itemsPerPage);
-      products = data || [];
-      count = fallbackCount;
+    // Сортировка для точного поиска
+    switch (sort) {
+      case 'in_stock': exactQuery = exactQuery.order('stock', { ascending: false }); break;
+      case 'price_asc': exactQuery = exactQuery.order('price', { ascending: true }); break;
+      case 'price_desc': exactQuery = exactQuery.order('price', { ascending: false }); break;
+      case 'name_asc': exactQuery = exactQuery.order('name', { ascending: true }); break;
+      case 'newest': default: exactQuery = exactQuery.order('created_at', { ascending: false }); break;
     }
 
+    const { data: exactData, count: exactCount } = await exactQuery.limit(itemsPerPage);
+
+    if (exactData && exactData.length > 0) {
+      products = exactData;
+      count = exactCount;
+    } else {
+      // 2. ЕСЛИ НИЧЕГО НЕ НАШЛИ - ИСПОЛЬЗУЕМ СЕМАНТИЧЕСКИЙ ПОИСК (УМНЫЙ)
+      const embedRes = await generateSearchEmbedding(query);
+
+      if (embedRes.success && embedRes.vector) {
+        const { data: semanticData } = await supabase.rpc('search_products_semantic', {
+          query_embedding: embedRes.vector,
+          match_threshold: 0.2, // Мягкий порог для поиска
+          match_count: itemsPerPage,
+          category_filter: categoryPath || null
+        });
+
+        if (semanticData && semanticData.length > 0) {
+          products = semanticData;
+          count = semanticData.length;
+
+          // Применяем сортировку
+          if (sort === 'price_asc') products.sort((a, b: any) => a.price - b.price);
+          if (sort === 'price_desc') products.sort((a, b: any) => b.price - a.price);
+          if (sort === 'name_asc') products.sort((a, b: any) => a.name.localeCompare(b.name));
+        }
+      }
+    }
   } else {
     // === ОБЫЧНЫЙ КАТАЛОГ (Без поиска) ===
     let dbQuery = supabase.from('products').select('*', { count: 'exact' });
@@ -142,10 +145,10 @@ export default async function CatalogPage({
         <Link
           href={`/catalog?category=${encodeURIComponent(cat.path)}`}
           className={`flex items-center justify-between py-1.5 px-2 rounded-lg text-sm transition-colors ${isActive
-              ? 'bg-blue-600 text-white font-bold shadow-md'
-              : isChildActive
-                ? 'text-blue-700 font-medium bg-blue-50'
-                : 'text-gray-600 hover:bg-gray-100'
+            ? 'bg-blue-600 text-white font-bold shadow-md'
+            : isChildActive
+              ? 'text-blue-700 font-medium bg-blue-50'
+              : 'text-gray-600 hover:bg-gray-100'
             }`}
         >
           <span>{cat.name}</span>

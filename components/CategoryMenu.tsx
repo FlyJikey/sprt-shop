@@ -41,16 +41,16 @@ export default function CategoryMenu() {
 
       // 2. Если запрос уже идет (на другой вкладке/компоненте), ждем его
       if (isFetching && fetchPromise) {
-         try {
-           const data = await fetchPromise;
-           if (mounted && data) {
-             setCategories(data);
-             setLoading(false);
-           }
-         } catch (err) {
-            // Игнорируем ошибки параллельных запросов
-         }
-         return;
+        try {
+          const data = await fetchPromise;
+          if (mounted && data) {
+            setCategories(data);
+            setLoading(false);
+          }
+        } catch (err) {
+          // Игнорируем ошибки параллельных запросов
+        }
+        return;
       }
 
       // 3. Делаем новый запрос
@@ -66,11 +66,13 @@ export default function CategoryMenu() {
             .order('name');
 
           if (error) throw error;
-          
+
           cachedCategories = data; // Сохраняем в кэш
           return data;
         } catch (error: any) {
-          console.error('Category load error:', error.message);
+          if (error.name !== 'AbortError' && !error.message?.includes('aborted')) {
+            console.error('Category load error:', error.message);
+          }
           return null;
         } finally {
           isFetching = false;
@@ -79,7 +81,7 @@ export default function CategoryMenu() {
 
       // Ждем результат
       const result = await fetchPromise;
-      
+
       if (mounted) {
         if (result) setCategories(result);
         setLoading(false);
@@ -94,7 +96,7 @@ export default function CategoryMenu() {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     return () => {
       mounted = false;
       document.removeEventListener('mousedown', handleClickOutside);
@@ -120,9 +122,9 @@ export default function CategoryMenu() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all font-bold shadow-sm border
-          ${isOpen 
-             ? 'bg-black text-white border-black ring-2 ring-gray-200' 
-             : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+          ${isOpen
+            ? 'bg-black text-white border-black ring-2 ring-gray-200'
+            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
           }`}
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -132,10 +134,10 @@ export default function CategoryMenu() {
       {/* Выпадающее меню */}
       {isOpen && (
         <div className="absolute top-full left-0 mt-3 w-[900px] bg-white rounded-2xl shadow-2xl border border-gray-100 flex overflow-hidden z-50 min-h-[500px] animate-in fade-in zoom-in-95 duration-200">
-          
+
           {/* ЛЕВАЯ КОЛОНКА (Корни) */}
           <div className="w-1/3 bg-gray-50 border-r border-gray-100 overflow-y-auto max-h-[600px] py-2 custom-scrollbar">
-            
+
             {/* --- БЛОК "ВСЕ ТОВАРЫ" --- */}
             <Link
               href="/catalog"
@@ -143,12 +145,12 @@ export default function CategoryMenu() {
               onMouseEnter={() => setActiveRoot(null)}
               className="w-full text-left px-6 py-4 text-sm font-black uppercase tracking-widest flex items-center gap-3 transition-all text-gray-900 hover:bg-blue-50 hover:text-blue-600 border-b border-gray-100 group"
             >
-              <LayoutGrid size={18} className="text-gray-400 group-hover:text-blue-600 transition-colors"/>
+              <LayoutGrid size={18} className="text-gray-400 group-hover:text-blue-600 transition-colors" />
               Все товары
             </Link>
 
             {loading ? (
-              <div className="flex justify-center py-10"><Loader2 className="animate-spin text-gray-400"/></div>
+              <div className="flex justify-center py-10"><Loader2 className="animate-spin text-gray-400" /></div>
             ) : (
               rootCategories.map(cat => (
                 <button
@@ -156,9 +158,9 @@ export default function CategoryMenu() {
                   onMouseEnter={() => setActiveRoot(cat)}
                   onClick={() => setActiveRoot(cat)}
                   className={`w-full text-left px-6 py-4 text-sm font-bold flex justify-between items-center transition-all
-                    ${activeRoot?.id === cat.id 
-                       ? 'bg-white text-black shadow-sm border-l-4 border-black' 
-                       : 'text-gray-500 hover:bg-gray-100 hover:text-black'
+                    ${activeRoot?.id === cat.id
+                      ? 'bg-white text-black shadow-sm border-l-4 border-black'
+                      : 'text-gray-500 hover:bg-gray-100 hover:text-black'
                     }`}
                 >
                   {cat.name}
@@ -166,9 +168,9 @@ export default function CategoryMenu() {
                 </button>
               ))
             )}
-            
+
             {!loading && rootCategories.length === 0 && (
-               <div className="p-6 text-xs text-gray-400 text-center">Категории не найдены</div>
+              <div className="p-6 text-xs text-gray-400 text-center">Категории не найдены</div>
             )}
           </div>
 
@@ -177,28 +179,28 @@ export default function CategoryMenu() {
             {activeRoot ? (
               <div>
                 <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                   <h3 className="text-2xl font-black text-gray-900">{activeRoot.name}</h3>
-                   <Link 
-                     href={`/catalog?category=${encodeURIComponent(activeRoot.path)}`}
-                     onClick={() => setIsOpen(false)}
-                     className="text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-blue-600 border border-gray-200 px-3 py-1 rounded-full hover:border-blue-200 transition-colors"
-                   >
-                     Смотреть всё
-                   </Link>
+                  <h3 className="text-2xl font-black text-gray-900">{activeRoot.name}</h3>
+                  <Link
+                    href={`/catalog?category=${encodeURIComponent(activeRoot.path)}`}
+                    onClick={() => setIsOpen(false)}
+                    className="text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-blue-600 border border-gray-200 px-3 py-1 rounded-full hover:border-blue-200 transition-colors"
+                  >
+                    Смотреть всё
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-8 gap-y-8">
                   {getLevel2(activeRoot.path).length > 0 ? (
                     getLevel2(activeRoot.path).map(sub => (
                       <div key={sub.id} className="break-inside-avoid">
-                        <Link 
+                        <Link
                           href={`/catalog?category=${encodeURIComponent(sub.path)}`}
                           onClick={() => setIsOpen(false)}
                           className="font-bold text-gray-900 hover:text-blue-600 block mb-2 text-lg"
                         >
                           {sub.name}
                         </Link>
-                        
+
                         <div className="flex flex-col gap-1.5 pl-1">
                           {getLevel3(sub.path).map(child => (
                             <Link
@@ -215,22 +217,22 @@ export default function CategoryMenu() {
                     ))
                   ) : (
                     <div className="col-span-2 text-center py-10 text-gray-400">
-                       <Package size={48} className="mx-auto mb-4 opacity-20"/>
-                       <p>В этом разделе пока нет подкатегорий.</p>
-                       <Link 
-                         href={`/catalog?category=${encodeURIComponent(activeRoot.path)}`}
-                         className="text-blue-600 font-bold hover:underline mt-2 inline-block"
-                         onClick={() => setIsOpen(false)}
-                       >
-                         Перейти к товарам раздела
-                       </Link>
+                      <Package size={48} className="mx-auto mb-4 opacity-20" />
+                      <p>В этом разделе пока нет подкатегорий.</p>
+                      <Link
+                        href={`/catalog?category=${encodeURIComponent(activeRoot.path)}`}
+                        className="text-blue-600 font-bold hover:underline mt-2 inline-block"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        Перейти к товарам раздела
+                      </Link>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-gray-300">
-                <ChevronRight size={48} className="opacity-10 mb-2"/>
+                <ChevronRight size={48} className="opacity-10 mb-2" />
                 <p>Наведите на категорию слева</p>
               </div>
             )}

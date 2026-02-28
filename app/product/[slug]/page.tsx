@@ -9,6 +9,7 @@ import RelatedProductsWrapper from '@/components/RelatedProductsWrapper';
 import FavoriteButton from '@/components/FavoriteButton';
 import { ArrowLeft, Check, AlertCircle, Package } from 'lucide-react';
 import BackButton from '@/components/BackButton';
+import ProductImageZoom from '@/components/ProductImageZoom';
 
 export const revalidate = 0;
 
@@ -59,23 +60,14 @@ export default async function ProductPage({ params }: Props) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
 
               {/* Фото */}
-              <div className="bg-gray-50 rounded-2xl aspect-square relative flex items-center justify-center border border-gray-100 p-8">
+              <div className="bg-gray-50 rounded-2xl aspect-square relative flex items-center justify-center border border-gray-100 overflow-hidden group">
                 {/* Кнопка избранного в углу фото */}
                 <div className="absolute top-4 right-4 z-10">
                   <FavoriteButton productId={product.id} className="w-12 h-12 shadow-sm bg-white" />
                 </div>
 
                 {product.image_url ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={product.image_url}
-                      alt={product.name}
-                      fill
-                      className="object-contain"
-                      priority
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
+                  <ProductImageZoom src={product.image_url} alt={product.name} />
                 ) : (
                   <div className="flex flex-col items-center text-gray-300 gap-2">
                     <Package size={48} />

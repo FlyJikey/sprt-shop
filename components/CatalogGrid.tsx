@@ -28,44 +28,40 @@ interface CatalogGridProps {
 }
 
 export default function CatalogGrid({ initialProducts, totalCount, sort, query, category }: CatalogGridProps) {
-  const [products, setProducts] = useState<Product[]>(() => {
-    if (typeof window !== 'undefined') {
-      const cacheKey = `catalog-state-${sort}-${query}-${category}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          // Восстанавливаем только если закэшированные продукты совпадают по фильтрам и их не меньше чем пришло с сервера
-          if (parsed && Array.isArray(parsed.products) && parsed.products.length >= initialProducts.length) {
-            // Запоминаем позицию скролла для последующего восстановления
-            if (parsed.scrollY) {
-              window.sessionStorage.setItem('restore_scroll', parsed.scrollY.toString());
-            }
-            return parsed.products;
-          }
-        } catch (e) {
-          console.error("Cache parsing error", e);
-        }
-      }
-    }
-    return initialProducts;
-  });
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [page, setPage] = useState(1);
 
-  const [page, setPage] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const cacheKey = `catalog-state-${sort}-${query}-${category}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (parsed && typeof parsed.page === 'number' && parsed.products?.length >= initialProducts.length) {
-            return parsed.page;
+  // Восстанавливаем стейт из кэша после маунта, чтобы избежать ошибки гидратации
+  useEffect(() => {
+    const cacheKey = `catalog-state-${sort}-${query}-${category}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+
+        // Проверяем, что первый товар в кэше совпадает с первым товаром с сервера
+        // Это защитит от устаревшего кэша, если логика поиска или БД изменилась
+        const firstItemMatches = (initialProducts.length === 0 && (!parsed.products || parsed.products.length === 0)) ||
+          (initialProducts.length > 0 && parsed.products && parsed.products.length > 0 && parsed.products[0].id === initialProducts[0].id);
+
+        if (parsed && Array.isArray(parsed.products) && parsed.products.length >= initialProducts.length && firstItemMatches) {
+          // Если в кэше больше товаров (пользователь подгружал страницы), восстанавливаем их
+          if (parsed.products.length > initialProducts.length) {
+            setProducts(parsed.products);
+            setPage(parsed.page || 1);
           }
-        } catch (e) { }
+          if (parsed.scrollY) {
+            window.sessionStorage.setItem('restore_scroll', parsed.scrollY.toString());
+          }
+        } else if (!firstItemMatches) {
+          // Если кэш устарел (первый элемент не совпадает), удаляем его
+          sessionStorage.removeItem(cacheKey);
+        }
+      } catch (e) {
+        console.error("Cache parsing error", e);
       }
     }
-    return 1;
-  });
+  }, [sort, query, category, initialProducts]);
 
   const [loading, setLoading] = useState(false);
   const hasMore = products.length < totalCount;
@@ -177,7 +173,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
           >
             {/* Фото товара */}
             <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-3 sm:mb-4 bg-gray-50 rounded-xl overflow-hidden">
-              {product.image_url && product.image_url !== '/window.svg' ? (
+              {product.image_url ? (
                 <Image
                   src={product.image_url}
                   alt={product.name}
@@ -185,7 +181,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
                   priority={index < 4}
                   loading={index < 4 ? undefined : "lazy"}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 50vw, 25vw"
-                  className="object-contain p-2 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                  className="object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs italic">

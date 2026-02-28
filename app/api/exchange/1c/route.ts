@@ -184,8 +184,8 @@ async function processImportFile(json: any) {
         external_id: externalId,
         slug: slug,
         description: item.Описание || '',
-        embedding: null,
-        category: null,
+        // Убрали `embedding: null` и `category: null`, чтобы при upsert эти поля не перезаписывались, 
+        // если товар уже существует. При создании новых они автоматически будут null по умолчанию в БД.
         updated_at: new Date().toISOString()
       });
     }

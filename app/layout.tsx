@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Магазин СПАРТАК",
     description: "SPRT-SHOP. Более 20 000 товаров в постоянном наличии.",
-    url: "https://sprt-shop.vercel.app",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "https://sprt-shop.vercel.app",
     siteName: "Магазин СПАРТАК",
     locale: "ru_RU",
     type: "website",
