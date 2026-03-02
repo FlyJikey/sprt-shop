@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
@@ -175,7 +176,7 @@ export default function CatalogGrid({ initialProducts, totalCount, sort, query, 
             <Link href={`/product/${product.slug}`} className="block relative aspect-square mb-3 sm:mb-4 bg-gray-50 rounded-xl overflow-hidden">
               {product.image_url ? (
                 <Image
-                  src={product.image_url}
+                  src={getProxyImageUrl(product.image_url)}
                   alt={product.name}
                   fill
                   priority={index < 4}

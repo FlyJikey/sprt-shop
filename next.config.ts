@@ -1,3 +1,4 @@
+import { getProxyImageUrl } from "@/lib/proxy-image";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -9,6 +10,16 @@ const nextConfig: NextConfig = {
         hostname: 'vzkrdedngnnneudksypj.supabase.co',
         port: '',
         pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'sprt-shop.ru',
+        pathname: '/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        pathname: '/**',
       },
       {
         protocol: 'https',
@@ -34,6 +45,15 @@ const nextConfig: NextConfig = {
   // Раньше паттерн /(.*)  включал их во ВСЕ страницы — это вызывало огромные cold starts
   outputFileTracingIncludes: {
     '/api/**/*': ['./node_modules/onnxruntime-node/bin/napi-v3/**/*.so', './node_modules/onnxruntime-node/bin/napi-v3/**/*.node'],
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: '/supabase-storage/:path*',
+        destination: 'https://vzkrdedngnnneudksypj.supabase.co/storage/v1/object/public/:path*',
+      },
+    ]
   },
 };
 

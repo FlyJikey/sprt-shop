@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useState } from 'react';
 import { AlertTriangle, X, Loader2, Package } from 'lucide-react';
@@ -93,7 +94,7 @@ export default function LowStockTrigger({ count }: Props) {
                         <td className="px-6 py-3 w-16">
                           <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
                              {item.image_url ? (
-                               <Image src={item.image_url} alt="" width={40} height={40} className="object-cover w-full h-full" />
+                               <Image src={getProxyImageUrl(item.image_url)} alt="" width={40} height={40} className="object-cover w-full h-full" />
                              ) : <Package size={16} className="text-gray-300"/>}
                           </div>
                         </td>

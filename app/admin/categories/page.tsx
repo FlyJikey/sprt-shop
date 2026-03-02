@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
@@ -142,7 +143,7 @@ export default function AdminCategoriesPage() {
                      <tr key={p.id}>
                        <td className="p-4 w-16">
                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                           {p.image_url ? <img src={p.image_url} className="w-full h-full object-contain"/> : <Package size={16}/>}
+                           {p.image_url ? <img src={getProxyImageUrl(p.image_url)} className="w-full h-full object-contain"/> : <Package size={16}/>}
                          </div>
                        </td>
                        <td className="p-4 font-bold text-sm">{p.name}</td>

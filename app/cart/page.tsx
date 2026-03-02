@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import Header from '@/components/Header';
 import { useCart } from '@/app/store';
@@ -121,7 +122,7 @@ export default function CartPage() {
               {items.map((item) => (
                 <div key={item.id} className="p-6 flex flex-col sm:flex-row items-center gap-6">
                   <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border relative">
-                    {item.image_url ? <Image src={item.image_url} alt={item.name} fill sizes="80px" className="object-contain p-1" /> : <span className="text-[10px] text-gray-400">Нет фото</span>}
+                    {item.image_url ? <Image src={getProxyImageUrl(item.image_url)} alt={item.name} fill sizes="80px" className="object-contain p-1" /> : <span className="text-[10px] text-gray-400">Нет фото</span>}
                   </div>
                   <div className="flex-grow text-center sm:text-left">
                     <h3 className="font-bold text-gray-900">{item.name}</h3>

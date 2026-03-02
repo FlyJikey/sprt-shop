@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useCart } from '@/app/store';
 import { useEffect, useState } from 'react';
@@ -69,7 +70,7 @@ export default function AddToCart({ product }: { product: Product }) {
       onClick={() => {
         addItem({
           ...product,
-          image_url: product.image_url || undefined,
+          image_url: getProxyImageUrl(product.image_url) || undefined,
           unit: product.unit || undefined
         });
       }}

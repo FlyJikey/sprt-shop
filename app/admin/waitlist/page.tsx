@@ -1,3 +1,4 @@
+import { getProxyImageUrl } from "@/lib/proxy-image";
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -140,7 +141,7 @@ export default async function AdminWaitlistPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {sortedStats.map(({ count, product }) => {
-                                    const imageUrl = product.image_url;
+                                    const imageUrl = getProxyImageUrl(product.image_url).image_url;
                                     const inStock = (product.stock || 0) > 0;
 
                                     return (

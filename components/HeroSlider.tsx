@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase-client';
@@ -90,7 +91,7 @@ export default function HeroSlider({ initialBanners }: { initialBanners: Banner[
           <div key={banner.id} className="min-w-full h-full relative overflow-hidden bg-gray-900">
             {/* ФОН С ЗУМОМ И ПРАВИЛЬНЫМИ МИНИАТЮРАМИ */}
             <Image
-              src={banner.image_url}
+              src={getProxyImageUrl(banner.image_url)}
               alt={banner.title || 'Slide'}
               fill
               priority={index === 0}

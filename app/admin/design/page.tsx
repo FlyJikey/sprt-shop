@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase-client';
@@ -347,7 +348,7 @@ export default function DesignPage() {
                             <div key={banner.id} className="group flex gap-4 p-4 border border-gray-50 rounded-[2rem] bg-gray-50/50 items-center hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all">
                                 <div className="w-20 h-14 relative rounded-xl overflow-hidden bg-gray-200 flex-shrink-0 shadow-inner">
                                     <img
-                                        src={banner.image_url}
+                                        src={getProxyImageUrl(banner.image_url)}
                                         className="w-full h-full object-cover"
                                         style={{
                                             objectFit: (banner.image_scale || 100) < 100 ? 'contain' : 'cover',
@@ -462,7 +463,7 @@ export default function DesignPage() {
                     <div className="grid grid-cols-3 gap-3">
                         {gridItems.map((item, index) => (
                             <div key={item.id} className="relative p-4 bg-gray-50 rounded-2xl border border-gray-100 flex flex-col items-center justify-center text-center group">
-                                <DynamicIcon name={item.icon_name} imageUrl={item.custom_image_url} className="w-6 h-6 mb-2 text-gray-600" />
+                                <DynamicIcon name={item.icon_name} imageUrl={getProxyImageUrl(item.custom_image_url)} className="w-6 h-6 mb-2 text-gray-600" />
                                 <span className="font-bold text-[10px] uppercase tracking-tight line-clamp-1">{item.label}</span>
 
                                 <div className="absolute inset-0 bg-white/90 backdrop-blur-sm rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">

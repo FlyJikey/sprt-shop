@@ -1,0 +1,521 @@
+
+> my-shop@0.1.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 26 errors:
+./app/admin/categories/page.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+
+./app/admin/categories/page.tsx:4:20
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { 
+ [90m 7 |[39m   [33mFolder[39m[33m,[39m [33mFolderOpen[39m[33m,[39m [33mChevronRight[39m[33m,[39m [33mChevronDown[39m[33m,[39m [0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/admin/categories/page.tsx:4:10
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { 
+ [90m 7 |[39m   [33mFolder[39m[33m,[39m [33mFolderOpen[39m[33m,[39m [33mChevronRight[39m[33m,[39m [33mChevronDown[39m[33m,[39m [0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/admin/design/page.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+
+./app/admin/design/page.tsx:4:20
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { [33mTrash2[39m[33m,[39m [33mPlus[39m[33m,[39m [33mEdit[39m[33m,[39m [33mSave[39m[33m,[39m [33mArrowRight[39m[33m,[39m [33mX[39m[33m,[39m [33mZoomIn[39m[33m,[39m [33mLayoutGrid[39m[33m,[39m [33mInfo[39m[33m,[39m [33mImage[39m [36mas[39m [33mImageIcon[39m[33m,[39m [33mMapPin[39m[33m,[39m [33mPhone[39m[33m,[39m [33mClock[39m[33m,[39m [33mMail[39m[33m,[39m [33mChevronUp[39m[33m,[39m [33mChevronDown[39m[33m,[39m [33mChevronLeft[39m[33m,[39m [33mChevronRight[39m[33m,[39m [33mSearch[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mDynamicIcon[39m [36mfrom[39m [32m'@/components/DynamicIcon'[39m[33m;[39m[0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/admin/design/page.tsx:4:10
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { [33mTrash2[39m[33m,[39m [33mPlus[39m[33m,[39m [33mEdit[39m[33m,[39m [33mSave[39m[33m,[39m [33mArrowRight[39m[33m,[39m [33mX[39m[33m,[39m [33mZoomIn[39m[33m,[39m [33mLayoutGrid[39m[33m,[39m [33mInfo[39m[33m,[39m [33mImage[39m [36mas[39m [33mImageIcon[39m[33m,[39m [33mMapPin[39m[33m,[39m [33mPhone[39m[33m,[39m [33mClock[39m[33m,[39m [33mMail[39m[33m,[39m [33mChevronUp[39m[33m,[39m [33mChevronDown[39m[33m,[39m [33mChevronLeft[39m[33m,[39m [33mChevronRight[39m[33m,[39m [33mSearch[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mDynamicIcon[39m [36mfrom[39m [32m'@/components/DynamicIcon'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/cart/page.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m [33mHeader[39m [36mfrom[39m [32m'@/components/Header'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { useCart } [36mfrom[39m [32m'@/app/store'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+
+./app/cart/page.tsx:8:10
+Ecmascript file had an error
+[0m [90m  6 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m  7 |[39m [36mimport[39m { [33mTrash2[39m[33m,[39m [33mMinus[39m[33m,[39m [33mPlus[39m[33m,[39m [33mX[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mUserCheck[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m [36mimport[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m    |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 10 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m [90m// Для проверки сессии[39m
+ [90m 11 |[39m [36mimport[39m { submitOrder } [36mfrom[39m [32m'@/app/actions'[39m[33m;[39m[0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/cart/page.tsx:9:10
+Ecmascript file had an error
+[0m [90m  7 |[39m [36mimport[39m { [33mTrash2[39m[33m,[39m [33mMinus[39m[33m,[39m [33mPlus[39m[33m,[39m [33mX[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mUserCheck[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m  8 |[39m [36mimport[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m  9 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m    |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 10 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m [90m// Для проверки сессии[39m
+ [90m 11 |[39m [36mimport[39m { submitOrder } [36mfrom[39m [32m'@/app/actions'[39m[33m;[39m
+ [90m 12 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m[0m
+
+You're importing a component that needs `useRouter`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./app/cart/page.tsx:8:21
+Ecmascript file had an error
+[0m [90m  6 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m  7 |[39m [36mimport[39m { [33mTrash2[39m[33m,[39m [33mMinus[39m[33m,[39m [33mPlus[39m[33m,[39m [33mX[39m[33m,[39m [33mCheckCircle[39m[33m,[39m [33mUserCheck[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m [36mimport[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m    |[39m                     [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m  9 |[39m [36mimport[39m { useRouter } [36mfrom[39m [32m'next/navigation'[39m[33m;[39m
+ [90m 10 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m [90m// Для проверки сессии[39m
+ [90m 11 |[39m [36mimport[39m { submitOrder } [36mfrom[39m [32m'@/app/actions'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+
+./components/AddToCart.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useCart } [36mfrom[39m [32m'@/app/store'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import trace:
+  Server Component:
+    ./components/AddToCart.tsx
+    ./app/product/[slug]/page.tsx
+
+
+./components/AddToCart.tsx:5:10
+Ecmascript file had an error
+[0m [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useCart } [36mfrom[39m [32m'@/app/store'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m [36mimport[39m [33mNotifyButton[39m [36mfrom[39m [32m'./NotifyButton'[39m[33m;[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36minterface[39m [33mProduct[39m {[0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/AddToCart.tsx
+    ./app/product/[slug]/page.tsx
+
+
+./components/AddToCart.tsx:5:21
+Ecmascript file had an error
+[0m [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useCart } [36mfrom[39m [32m'@/app/store'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m { useEffect[33m,[39m useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                     [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m [36mimport[39m [33mNotifyButton[39m [36mfrom[39m [32m'./NotifyButton'[39m[33m;[39m
+ [90m 7 |[39m
+ [90m 8 |[39m [36minterface[39m [33mProduct[39m {[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/AddToCart.tsx
+    ./app/product/[slug]/page.tsx
+
+
+./components/CatalogGrid.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import trace:
+  Server Component:
+    ./components/CatalogGrid.tsx
+    ./app/catalog/page.tsx
+
+
+./components/CatalogGrid.tsx:4:20
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mAddToCart[39m [36mfrom[39m [32m'@/components/AddToCart'[39m[33m;[39m[0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/CatalogGrid.tsx
+    ./app/catalog/page.tsx
+
+
+./components/CatalogGrid.tsx:4:10
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mAddToCart[39m [36mfrom[39m [32m'@/components/AddToCart'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/CatalogGrid.tsx
+    ./app/catalog/page.tsx
+
+
+./components/HeroSlider.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import trace:
+  Server Component:
+    ./components/HeroSlider.tsx
+    ./components/HomePageClient.tsx
+    ./app/page.tsx
+
+
+./components/HeroSlider.tsx:4:20
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                    [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { [33mArrowRight[39m[33m,[39m [33mChevronLeft[39m[33m,[39m [33mChevronRight[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+You're importing a component that needs `useEffect`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/HeroSlider.tsx
+    ./components/HomePageClient.tsx
+    ./app/page.tsx
+
+
+./components/HeroSlider.tsx:4:31
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                               [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { [33mArrowRight[39m[33m,[39m [33mChevronLeft[39m[33m,[39m [33mChevronRight[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+You're importing a component that needs `useRef`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/HeroSlider.tsx
+    ./components/HomePageClient.tsx
+    ./app/page.tsx
+
+
+./components/HeroSlider.tsx:4:10
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect[33m,[39m useRef } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { [33mArrowRight[39m[33m,[39m [33mChevronLeft[39m[33m,[39m [33mChevronRight[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/HeroSlider.tsx
+    ./components/HomePageClient.tsx
+    ./app/page.tsx
+
+
+./components/HomePageClient.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import trace:
+  Server Component:
+    ./components/HomePageClient.tsx
+    ./app/page.tsx
+
+
+./components/HomePageClient.tsx:4:10
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { useCart } [36mfrom[39m [32m'@/app/store'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m { [33mShoppingCart[39m[33m,[39m [33mImage[39m [36mas[39m [33mImageIcon[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/HomePageClient.tsx
+    ./app/page.tsx
+
+
+./components/RelatedProducts.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m"use client"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import trace:
+  Server Component:
+    ./components/RelatedProducts.tsx
+    ./components/RelatedProductsWrapper.tsx
+    ./app/product/[slug]/page.tsx
+
+
+./components/RelatedProducts.tsx:4:17
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m"use client"[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m                 [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m [33mLink[39m [36mfrom[39m [32m'next/link'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m { [33mPackage[39m[33m,[39m [33mSparkles[39m[33m,[39m [33mChevronDown[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/RelatedProducts.tsx
+    ./components/RelatedProductsWrapper.tsx
+    ./app/product/[slug]/page.tsx
+
+
+./components/admin/LowStockTrigger.tsx:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { getProxyImageUrl } [36mfrom[39m [32m"@/lib/proxy-image"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m [36mimport[39m { [33mAlertTriangle[39m[33m,[39m [33mX[39m[33m,[39m [33mLoader2[39m[33m,[39m [33mPackage[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m[0m
+
+The "use client" directive must be placed before other expressions. Move it to the top of the file to resolve this issue.
+
+Import trace:
+  Server Component:
+    ./components/admin/LowStockTrigger.tsx
+    ./app/admin/page.tsx
+
+
+./components/admin/LowStockTrigger.tsx:4:10
+Ecmascript file had an error
+[0m [90m 2 |[39m [32m'use client'[39m[33m;[39m
+ [90m 3 |[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { useState } [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 5 |[39m [36mimport[39m { [33mAlertTriangle[39m[33m,[39m [33mX[39m[33m,[39m [33mLoader2[39m[33m,[39m [33mPackage[39m } [36mfrom[39m [32m'lucide-react'[39m[33m;[39m
+ [90m 6 |[39m [36mimport[39m { supabase } [36mfrom[39m [32m'@/lib/supabase-client'[39m[33m;[39m
+ [90m 7 |[39m [36mimport[39m [33mImage[39m [36mfrom[39m [32m'next/image'[39m[33m;[39m[0m
+
+You're importing a component that needs `useState`. This React Hook only works in a Client Component. To fix, mark the file (or its parent) with the `"use client"` directive.
+
+ Learn more: https://nextjs.org/docs/app/api-reference/directives/use-client
+
+
+
+Import trace:
+  Server Component:
+    ./components/admin/LowStockTrigger.tsx
+    ./app/admin/page.tsx
+
+
+    at <unknown> (./app/admin/categories/page.tsx:2:1)
+    at <unknown> (./app/admin/categories/page.tsx:4:20)
+    at <unknown> (./app/admin/categories/page.tsx:4:10)
+    at <unknown> (./app/admin/design/page.tsx:2:1)
+    at <unknown> (./app/admin/design/page.tsx:4:20)
+    at <unknown> (./app/admin/design/page.tsx:4:10)
+    at <unknown> (./app/cart/page.tsx:2:1)
+    at <unknown> (./app/cart/page.tsx:8:10)
+    at <unknown> (./app/cart/page.tsx:9:10)
+    at <unknown> (./app/cart/page.tsx:8:21)
+    at <unknown> (./components/AddToCart.tsx:2:1)
+    at <unknown> (./components/AddToCart.tsx:5:10)
+    at <unknown> (./components/AddToCart.tsx:5:21)
+    at <unknown> (./components/CatalogGrid.tsx:2:1)
+    at <unknown> (./components/CatalogGrid.tsx:4:20)
+    at <unknown> (./components/CatalogGrid.tsx:4:10)
+    at <unknown> (./components/HeroSlider.tsx:2:1)
+    at <unknown> (./components/HeroSlider.tsx:4:20)
+    at <unknown> (./components/HeroSlider.tsx:4:31)
+    at <unknown> (./components/HeroSlider.tsx:4:10)
+    at <unknown> (./components/HomePageClient.tsx:2:1)
+    at <unknown> (./components/HomePageClient.tsx:4:10)
+    at <unknown> (./components/RelatedProducts.tsx:2:1)
+    at <unknown> (./components/RelatedProducts.tsx:4:17)
+    at <unknown> (./components/admin/LowStockTrigger.tsx:2:1)
+    at <unknown> (./components/admin/LowStockTrigger.tsx:4:10)

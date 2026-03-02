@@ -1,4 +1,5 @@
 "use client";
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -47,7 +48,7 @@ export default function RelatedProducts({ products }: RelatedProductsProps) {
             <div className="aspect-square bg-gray-50 rounded-xl mb-4 relative flex items-center justify-center overflow-hidden">
               {related.image_url ? (
                 <Image
-                  src={related.image_url}
+                  src={getProxyImageUrl(related.image_url)}
                   alt={related.name}
                   fill
                   className="object-contain p-4 group-hover:scale-110 transition-transform duration-500"

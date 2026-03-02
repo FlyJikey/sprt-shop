@@ -1,3 +1,4 @@
+import { getProxyImageUrl } from "@/lib/proxy-image";
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -119,7 +120,7 @@ export default async function AdminProductsPage({
                 <td className="p-4">
                   <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden border border-gray-200">
                     {product.image_url && product.image_url !== '/window.svg' ? (
-                      <img src={product.image_url} alt="" className="w-full h-full object-cover" />
+                      <img src={getProxyImageUrl(product.image_url)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-xs text-gray-400">Нет</span>
                     )}

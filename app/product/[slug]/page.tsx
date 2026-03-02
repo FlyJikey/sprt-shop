@@ -1,3 +1,4 @@
+import { getProxyImageUrl } from "@/lib/proxy-image";
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -67,7 +68,7 @@ export default async function ProductPage({ params }: Props) {
                 </div>
 
                 {product.image_url ? (
-                  <ProductImageZoom src={product.image_url} alt={product.name} />
+                  <ProductImageZoom src={getProxyImageUrl(product.image_url)} alt={product.name} />
                 ) : (
                   <div className="flex flex-col items-center text-gray-300 gap-2">
                     <Package size={48} />

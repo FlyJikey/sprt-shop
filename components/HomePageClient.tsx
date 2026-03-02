@@ -1,4 +1,5 @@
 'use client';
+import { getProxyImageUrl } from "@/lib/proxy-image";
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase-client';
@@ -98,7 +99,7 @@ export default function HomePageClient({
                                     <div className="w-12 h-12 mb-5 text-[#9C2730] group-hover:text-black transition-colors">
                                         <DynamicIcon
                                             name={item.icon_name}
-                                            imageUrl={item.custom_image_url}
+                                            imageUrl={getProxyImageUrl(item.custom_image_url)}
                                             className="w-full h-full object-contain"
                                         />
                                     </div>
@@ -135,7 +136,7 @@ export default function HomePageClient({
                                     <Link href={`/product/${p.slug}`} className="absolute inset-0 z-0">
                                         {p.image_url ? (
                                             <Image
-                                                src={p.image_url}
+                                                src={getProxyImageUrl(p.image_url)}
                                                 alt={p.name}
                                                 fill
                                                 priority={index < 4}
