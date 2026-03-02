@@ -1,8 +1,6 @@
-import dynamic from 'next/dynamic';
-import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import Image from 'next/image';
-import { HelpCircle } from 'lucide-react';
 import { useMemo } from 'react';
+import { HelpCircle, Sparkles, Star, Zap, Shield, Smartphone, Laptop, Tv, Speaker, Headphones, Camera, Watch, Gamepad2, Mic, Music, Box, Grid } from 'lucide-react';
 
 interface DynamicIconProps {
   name?: string;       // Название иконки Lucide (например "smartphone")
@@ -26,22 +24,30 @@ export default function DynamicIcon({ name, imageUrl, className }: DynamicIconPr
     );
   }
 
-  // 2. Динамический импорт иконки Lucide (без бандлинга всей библиотеки)
+  // 2. Ограниченный маппинг популярных иконок, чтобы не вешать компилятор
+  const IconMap: Record<string, any> = {
+    'smartphone': Smartphone,
+    'laptop': Laptop,
+    'tv': Tv,
+    'speaker': Speaker,
+    'headphones': Headphones,
+    'camera': Camera,
+    'watch': Watch,
+    'gamepad-2': Gamepad2,
+    'mic': Mic,
+    'music': Music,
+    'box': Box,
+    'grid': Grid,
+    'sparkles': Sparkles,
+    'star': Star,
+    'zap': Zap,
+    'shield': Shield
+  };
+
   const IconComponent = useMemo(() => {
     if (!name) return null;
-
-    // Приводим к kebab-case (например, ShoppingCart -> shopping-cart)
-    const normalizedName = name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-
-    // Проверяем, существует ли такая иконка в словаре
-    if (normalizedName in dynamicIconImports) {
-      return dynamic(dynamicIconImports[normalizedName as keyof typeof dynamicIconImports], {
-        loading: () => <div className={`animate-pulse bg-gray-200 rounded-md ${className || 'w-6 h-6'}`} />,
-      });
-    }
-    return null;
+    return IconMap[name.toLowerCase()] || null;
   }, [name]);
-
 
   if (IconComponent) {
     return <IconComponent className={className} />;

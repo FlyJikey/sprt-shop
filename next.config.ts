@@ -22,14 +22,13 @@ const nextConfig: NextConfig = {
   // Жестко заставляем Vercel упаковать внешние модули в Serverless функции
   serverExternalPackages: ['@xenova/transformers', 'onnxruntime-node'],
 
-  // Указываем Next.js скомпилировать пакет lucide-react для правильной работы dynamicIconImports
-  transpilePackages: ['lucide-react'],
+  // Убрали transpilePackages, так как отказались от dynamicIconImports (было жутко медленно)
 
   typescript: {
     ignoreBuildErrors: true,
   },
 
-  turbopack: {},
+  // turbopack: {},
 
   // Принудительно включаем бинарники ONNXRuntime ТОЛЬКО в API-роуты (ИИ)
   // Раньше паттерн /(.*)  включал их во ВСЕ страницы — это вызывало огромные cold starts
